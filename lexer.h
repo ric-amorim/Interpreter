@@ -11,6 +11,14 @@ enum token_type{
     //Operators
     assign,
     plus,
+    minus,
+    bang,
+    asterisk,
+    slash,
+    lt,
+    gt,
+    eq,
+    notEq,
 
     //Delimiters
     comma,
@@ -24,7 +32,12 @@ enum token_type{
 
     //Keywords
     function,
-    let
+    let,
+    trueKey,   
+    falseKey,
+    ifKey,
+    elseKey,
+    returnKey
 };
 
 
@@ -49,5 +62,11 @@ public:
     std::string readIdentifier(void) noexcept;
     void skipWhiteSpace(void) noexcept;
     std::string readNumber(void) noexcept;
+    char peekChar(void) noexcept;
+};
+
+class repl final{
+public:
+    void start(void) noexcept;
 };
 

@@ -37,6 +37,15 @@ void lexer::nextToken(token &t) noexcept{
     this-> skipWhiteSpace();
     switch (this->_byte) {
         case '=':
+            if(this->peekChar()=='='){
+                char byte = this->_byte;
+                this->readChar();
+                std::string literal = std::string(1,byte) 
+                                    + std::string(1, this->_byte);
+                t.tokenType = token_type::eq;
+                t.literal   = literal;
+                break;
+            }
             t.tokenType = token_type::assign;
             t.literal   = this->_byte;
             break;        
@@ -66,6 +75,39 @@ void lexer::nextToken(token &t) noexcept{
             break;
         case '}':
             t.tokenType = token_type::rbrace;
+            t.literal   = this->_byte;
+            break;
+        case '-':
+            t.tokenType = token_type::minus;
+            t.literal   = this->_byte;
+            break;
+        case '!':
+            if(this->peekChar()=='='){
+                char byte = this->_byte;
+                this->readChar();
+                std::string literal = std::string(1,byte) 
+                                    + std::string(1, this->_byte);
+                t.tokenType = token_type::notEq;
+                t.literal   = literal;
+                break;
+            }
+            t.tokenType = token_type::bang;
+            t.literal   = this->_byte;
+            break;
+        case '/':
+            t.tokenType = token_type::slash;
+            t.literal   = this->_byte;
+            break;
+        case '*':
+            t.tokenType = token_type::asterisk;
+            t.literal   = this->_byte;
+            break;
+        case '<':
+            t.tokenType = token_type::lt;
+            t.literal   = this->_byte;
+            break;
+        case '>':
+            t.tokenType = token_type::gt;
             t.literal   = this->_byte;
             break;
         case 0:
@@ -104,7 +146,7 @@ std::string lexer::readIdentifier(void) noexcept{
    while(isLetter(this->_byte)){
         this->readChar();
    }
-   return this->_input.substr(position, this->_position - position); //REVER ISTO que provavelmente n ta certo
+   return this->_input.substr(position, this->_position - position);
 }
 
 
@@ -114,4 +156,10 @@ std::string lexer::readNumber(void) noexcept{
         this->readChar();
     }
     return this->_input.substr(position,this->_position - position);
+}
+
+char lexer::peekChar(void) noexcept{
+    if(this->_readPosition >= this->_input.length())
+        return 0;
+    return this->_input[this->_readPosition];
 }
