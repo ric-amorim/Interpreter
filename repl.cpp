@@ -1,7 +1,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <string>
-#include "lexer.h"
+#include "Lexer/lexer.h"
 
 
 #define PROMPT ">> "

@@ -1,4 +1,5 @@
-#include "ast.h"
+#include "../Ast/ast.h"
+
 
 class parser final{
 public:

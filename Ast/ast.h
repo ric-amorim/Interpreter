@@ -1,6 +1,6 @@
 #include <iostream>
 #include <vector>
-#include "lexer.h"
+#include "../Lexer/lexer.h"
 
 struct node {
     virtual std::string tokenLiteral(void) const = 0;
