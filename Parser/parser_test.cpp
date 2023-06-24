@@ -1,5 +1,7 @@
 #include "parser.h"
 #include <cstdlib>
+#include <iostream>
+#include <vector>
 
 //Note to myself: the errors give the value in hexadecimal. Change in the future
 
@@ -17,28 +19,42 @@ bool testLetStatement(statement* s,std::string name){
     }
     if(letStmt->name->value != name){
         std::cerr<<"letStmt->name->value not "
-                 <<name<<". got="
-                 <<letStmt->name<<std::endl;
+                 <<name<<". got= "
+                 <<letStmt->name->value<<std::endl;
         return false;
     }
     if(letStmt->name->tokenLiteral() != name){ 
         std::cerr<<"letStmt->name->tokenLiteral() not "
                  <<name<<". got= "
-                 <<letStmt->name<<std::endl;
+                 <<letStmt->name->tokenLiteral()<<std::endl;
         return false;
     }
     return true;
 }
 
+void checkParserErrors(parser p){
+    std::vector<std::string> errors = p.error(); 
+    if(errors.size() ==0)
+        return;
+    std::cerr<<"parser has "<<errors.size()<<" error"<<std::endl;
+    for(auto& i : errors){
+        std::cerr<<"parse error: "<<i<<std::endl;
+    }
+    exit(EXIT_FAILURE);
+}
+
+
 
 void testLetStatements(void){
-    std::string input{"let x = 5;"
-                      "let y = 10;"
-                      "let foobar = 838383;"};
+    std::string input{"let x 5;"
+                      "let = 10;"
+                      "let 838383;"};
     lexer lex(input);
-    parser pars(lex);
+    std::vector<std::string> v;
+    parser pars(lex,v);
 
     program* p = pars.parseProgram(); 
+    checkParserErrors(pars);
     if(p==nullptr){
         std::cerr<<"ParseProgram() return nullptr"<<std::endl;
         std::exit(EXIT_FAILURE);
@@ -65,6 +81,7 @@ void testLetStatements(void){
     std::cout<< "Everything is okay"<<std::endl;
     return;
 }
+
 
 
 int main(void){

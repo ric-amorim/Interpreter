@@ -1,8 +1,10 @@
 #include "parser.h"
+#include <vector>
+#include <sstream>
 
 
-parser::parser(lexer l) 
-     : l(l){
+parser::parser(lexer l,std::vector<std::string> errors) 
+     : l(l),errors(errors){
     
     nextToken();
     nextToken();
@@ -71,8 +73,26 @@ bool parser:: expectPeek(token_type t) noexcept{
         this->nextToken();
         return true;
     }
+    this->peekError(t);
     return false;
 }
+
+std::vector<std::string> parser::error(void) noexcept{
+    return this->errors;
+}
+
+void parser::peekError(token_type t) noexcept{
+    std::string expectedToken = tokenToString(t);
+
+    std::string actualToken = tokenToString(this->peekToken.tokenType);
+
+    std::ostringstream oss;
+    oss << "expected next token to be " << expectedToken << ", got " << actualToken << " instead";
+    std::string msg = oss.str();
+    this->errors.push_back(msg);
+}
+
+
 
 
 

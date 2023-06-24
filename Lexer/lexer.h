@@ -40,6 +40,8 @@ enum token_type{
     returnKey
 };
 
+std::string tokenToString(token_type);
+
 
 
 struct token final{
