@@ -4,6 +4,7 @@
 
 struct node {
     virtual std::string tokenLiteral(void) const = 0;
+    virtual std::string strings(void) const =0; 
     virtual ~node() {}
 };
 
@@ -20,6 +21,7 @@ struct expression : public node{
 struct program : public node{
     std::vector<statement*> statements;
     std::string tokenLiteral(void) const override;
+    std::string strings(void) const override;
 };
 
 class identifier : public expression{
@@ -30,6 +32,7 @@ public:
     identifier(token&,std::string);
     void expressionNode(void) const override {}
     std::string tokenLiteral(void) const override;
+    std::string strings(void) const override;
 };
 
 class letStatement : public statement{
@@ -41,6 +44,7 @@ public:
     letStatement(token&);
     void statementNode(void) const override {}
     std::string tokenLiteral(void) const override;
+    std::string strings(void) const override;
 };
 
 class returnStatement :public statement{
@@ -51,6 +55,18 @@ public:
     returnStatement(token&);
     void statementNode(void) const override {}
     std::string tokenLiteral(void) const override;
+    std::string strings(void) const override;
+};
+
+class expressionStatement : public statement{
+public:
+    token token1;
+    expression* expressions;
+
+    expressionStatement(token&);
+    void statementNode(void) const override {}
+    std::string tokenLiteral(void) const override;
+    std::string strings(void) const override;
 };
 
 
