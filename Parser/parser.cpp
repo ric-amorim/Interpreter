@@ -21,7 +21,7 @@ program* parser::parseProgram(void) noexcept{
     program* progm= new program();
     progm->statements = std::vector<statement*>();
 
-    while(this->curToken.tokenType != token_type::eof){
+    while(!this->curTokenIs(token_type::eof)){
        statement* stmt = parseStatement(); 
        if(stmt != nullptr)
            progm->statements.push_back(stmt);
