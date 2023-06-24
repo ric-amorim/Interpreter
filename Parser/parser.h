@@ -19,6 +19,7 @@ public:
     bool expectPeek(token_type) noexcept;
     std::vector<std::string> error(void) noexcept;
     void peekError(token_type) noexcept;
+    returnStatement* parseReturnStatement(void) noexcept;
 };
 
 

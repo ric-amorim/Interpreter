@@ -43,6 +43,16 @@ public:
     std::string tokenLiteral(void) const override;
 };
 
+class returnStatement :public statement{
+public: 
+    token token1;
+    expression* returnValue;
+
+    returnStatement(token&);
+    void statementNode(void) const override {}
+    std::string tokenLiteral(void) const override;
+};
+
 
 
 
