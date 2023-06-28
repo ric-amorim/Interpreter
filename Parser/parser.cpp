@@ -1,6 +1,7 @@
 #include "parser.h"
 #include <vector>
 #include <sstream>
+#include <functional>
 
 
 parser::parser(lexer l,std::vector<std::string> errors) 
@@ -8,9 +9,16 @@ parser::parser(lexer l,std::vector<std::string> errors)
     
     nextToken();
     nextToken();
+
+    prefixParseFns = std::map<token_type,prefixParseFn>();
+    registerPrefix(token_type::ident,&parser::parseIdentifier);
     
     return;
-} 
+}                                                                                                                                                                                                                                  
+
+expression* parser::parseIdentifier(void){
+    return new identifier{curToken,curToken.literal};
+}
 
 void parser::nextToken(void) noexcept{
     curToken=peekToken;
@@ -73,7 +81,7 @@ statement* parser::parseStatement(void) noexcept{
         case token_type::returnKey:
             return this->parseReturnStatement();
         default:
-            return nullptr;
+            return this->parseExpressionStatement();
     }
 }
 
@@ -104,6 +112,37 @@ returnStatement* parser::parseReturnStatement(void) noexcept{
     return stmt;
 
 }
+
+void parser::registerPrefix(token_type t,prefixParseFn pre) noexcept{
+    this->prefixParseFns[t] = pre;
+}
+
+void parser::registerInfix(token_type t,infixParseFn in) noexcept{
+    this->infixParseFns[t] = in;
+}
+
+expression* parser::parseExpression(precedence p) noexcept{
+    prefixParseFn prefix = this->prefixParseFns[this->curToken.tokenType];
+    if(prefix == nullptr) 
+        return nullptr;
+    expression* leftExp = (this->*prefix)();
+
+    return leftExp;
+}
+
+expressionStatement* parser::parseExpressionStatement(void) noexcept{
+    expressionStatement* stmt = new expressionStatement(this->curToken);
+
+    stmt->expressions = this->parseExpression(lowest);
+
+    if(this->peekTokenIs(token_type::semicolon))
+            this->nextToken();
+    return stmt;
+
+}
+
+
+
 
 
 

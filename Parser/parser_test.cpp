@@ -118,8 +118,55 @@ void testReturnStatements(void){
     return;
 }
 
+void testIdentifierExpression(void){
+    std::string input{"foobar"};
+    
+    lexer lex(input);
+    std::vector<std::string> v;
+    parser pars(lex,v);
+
+    program* p = pars.parseProgram(); 
+    checkParserErrors(pars);
+
+    if(p->statements.size() !=1){
+        std::cerr<<"p.statements doesn't contain 1 statement. got= "
+                 << p->statements.size()<<std::endl;
+        std::exit(EXIT_FAILURE);
+
+    }
+
+    for(auto stmt : p->statements){
+        auto identStmt = dynamic_cast<expressionStatement*>(stmt);
+        if(!identStmt){
+            std::cerr<<"statements not expressionStatement. got= "<<stmt<<std::endl;
+            exit(EXIT_FAILURE);
+        }
+
+        auto ident = dynamic_cast<identifier*>(identStmt->expressions);
+        if(!ident){
+            std::cerr<<"statements not identifier. got= "<<stmt<<std::endl;
+            exit(EXIT_FAILURE);
+        }
+        if(ident->value != "foobar"){
+            std::cerr<<"ident.value not 'foobar'. got "
+                     <<ident->value<<std::endl;
+            exit(EXIT_FAILURE);
+        }
+        if(ident->tokenLiteral() != "foobar"){
+            std::cerr<<"ident.tokenLiteral not 'foobar'. got "
+                     <<ident->tokenLiteral()<<std::endl;
+            exit(EXIT_FAILURE);
+        }
+    }
+    std::cout<< "Everything is okay"<<std::endl;
+    return;
+
+
+}
+
 int main(void){
     //testLetStatements();
-    testReturnStatements();
+    //testReturnStatements();
+    testIdentifierExpression();
     return 0;
 }
