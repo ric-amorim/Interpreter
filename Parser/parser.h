@@ -1,6 +1,7 @@
 #include "../Ast/ast.h"
 #include <vector>
 #include <map>
+#include <unordered_map>
 
 enum precedence{
     lowest, 
@@ -40,10 +41,14 @@ public:
     void registerInfix(token_type t,infixParseFn in) noexcept;
     expressionStatement* parseExpressionStatement(void) noexcept;
     void noPrefixParseFnError(token_type t) noexcept;
-    expression* parseExpression(precedence p) noexcept; 
+    expression* parseExpression(int p) noexcept; 
     expression* parseIdentifier(void);
     expression* parseIntegerLiteral(void);
     expression* parsePrefixExpression(void);
+
+    int peekPrecedence(void) noexcept;
+    int curPrecedence(void) noexcept;
+    expression* parseInfixExpression(expression*) noexcept;
 };
 
 

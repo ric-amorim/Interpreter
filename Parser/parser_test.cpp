@@ -285,11 +285,117 @@ void testParsingPrefixExpression(void){
 
 }
 
+void testParsinInfixExpressions(void){
+    struct prefixTests{
+        std::string input;
+        int leftValue;
+        std::string operat;
+        int rightValue;
+    };
+
+    prefixTests input[8] = {
+        {"5 + 5;",5,"+",5},
+        {"5 - 5;",5,"-",5},
+        {"5 * 5;",5,"*",5},
+        {"5 / 5;",5,"/",5},
+        {"5 > 5;",5,">",5},
+        {"5 < 5;",5,"<",5},
+        {"5 == 5;",5,"==",5},
+        {"5 != 5;",5,"!=",5},
+    };
+    
+    for(int i=0;i<8;i++){
+        lexer lex(input[i].input);
+        std::vector<std::string> v;
+        parser pars(lex,v);
+
+        program* p = pars.parseProgram(); 
+        checkParserErrors(pars);
+
+        if(p->statements.size() !=1){
+            std::cerr<<"p.statements doesn't contain 1 statement. got= "
+                     << p->statements.size()<<std::endl;
+            std::exit(EXIT_FAILURE);
+
+        }
+
+        for(auto stmt : p->statements){
+            auto intStmt = dynamic_cast<expressionStatement*>(stmt);
+            if(!intStmt){
+                std::cerr<<"statements not expressionStatement. got= "<<intStmt<<std::endl;
+                exit(EXIT_FAILURE);
+            }
+
+            auto exp = dynamic_cast<infixExpression*>(intStmt->expressions);
+            if(!exp){
+                std::cerr<<"exp not infixExpression. got= "<<intStmt->expressions<<std::endl;
+                exit(EXIT_FAILURE);
+            }
+            if(!testIntegerLiteral(exp->left,input[i].leftValue)){
+                    return;
+            }
+            if(exp->operat != input[i].operat){
+                std::cerr<<"exp.operator not '"<<input[i].operat<<"'. got "
+                         <<exp->operat<<std::endl;
+                exit(EXIT_FAILURE);
+            }
+            if(!testIntegerLiteral(exp->right,input[i].rightValue)){
+                    return;
+            }
+        }
+        std::cout<< "Everything is okay"<<std::endl;
+    }
+    return;
+
+
+}
+
+void testOperatorPrecedenceParsing(void){
+    struct prefixTests{
+        std::string input;
+        std::string expected;
+    };
+
+    prefixTests input[11] = {
+        {"-a * b","((-a) * b)"},
+        {"!-a","(!(-a))"},
+        {"a + b + c","((a + b) + c)"},
+        {"a * b * c","((a * b) * c)"},
+        {"a * b / c","((a * b) / c)"},
+        {"a + b / c","(a + (b / c))"},
+        {"a + b * c + d / e - f","(((a + (b * c)) + (d / e)) - f)"},
+        {"3 + 4; -5 * 5","(3 + 4)((-5) * 5)"},
+        {"5 > 4 == 3 < 4","((5 > 4) == (3 < 4))"},
+        {"5 < 4 != 3 > 4","((5 < 4) != (3 > 4))"},
+        {"3 + 4 * 5 == 3 * 1 + 4 * 5","((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))"}
+    };
+    
+    for(int i=0;i<11;i++){
+        lexer lex(input[i].input);
+        std::vector<std::string> v;
+        parser pars(lex,v);
+
+        program* p = pars.parseProgram(); 
+        checkParserErrors(pars);
+
+        std::string actual = p->strings();
+        if(actual != input[i].expected){
+            std::cerr<<"expected= "<<input[i].expected<<", got= "
+                     <<actual<<std::endl;
+            exit(EXIT_FAILURE);
+        }
+        std::cout<< "Everything is okay"<<std::endl;
+    }
+    return;
+}
+
 int main(void){
     //testLetStatements();
     //testReturnStatements();
     //testIdentifierExpression();
     //testIntegerLiteralExpression();
-    testParsingPrefixExpression();
+    //testParsingPrefixExpression();
+    //testParsinInfixExpressions();
+    testOperatorPrecedenceParsing();
     return 0;
 }

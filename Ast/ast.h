@@ -94,4 +94,17 @@ public:
 
 };
 
+class infixExpression : public expression{
+public:
+    token token1;
+    expression* left;
+    std::string operat;
+    expression* right;
+
+    infixExpression(token&,expression*,std::string);
+    void expressionNode(void) const override {};
+    std::string tokenLiteral(void) const override;
+    std::string strings(void) const override;
+
+};
 

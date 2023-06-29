@@ -120,3 +120,20 @@ std::string prefixExpression::strings(void) const{
     out << "("<<this->operat<<this->right->strings()<<")";
     return out.str();
 }
+
+infixExpression::infixExpression(token& t,expression* l,std::string operat)
+            : token1(t), left(l),operat(operat){
+
+            return;
+}
+
+std::string infixExpression::tokenLiteral(void) const{
+    return token1.literal;
+}
+
+std::string infixExpression::strings(void) const{
+    std::stringstream out;
+    out<<"("<<this->left->strings()<<" "<<this->operat<<" "
+        << this->right->strings()<<")";
+    return out.str();
+}

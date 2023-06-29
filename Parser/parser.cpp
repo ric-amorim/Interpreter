@@ -4,6 +4,16 @@
 #include <sstream>
 #include <functional>
 
+std::unordered_map<token_type,int> precedences = {
+    {token_type::eq,equals},
+    {token_type::notEq,equals},
+    {token_type::lt,lessgreater},
+    {token_type::gt,lessgreater},
+    {token_type::plus,sum},
+    {token_type::minus,sum},
+    {token_type::slash,product},
+    {token_type::asterisk,product}
+};
 
 parser::parser(lexer l,std::vector<std::string> errors) 
      : l(l),errors(errors){
@@ -15,8 +25,18 @@ parser::parser(lexer l,std::vector<std::string> errors)
     registerPrefix(token_type::ident,&parser::parseIdentifier);
     registerPrefix(token_type::integer,&parser::parseIntegerLiteral);
     registerPrefix(token_type::bang,&parser::parsePrefixExpression);
-    registerPrefix(token_type::minus,&parser::parsePrefixExpression);
-    
+    registerPrefix(token_type::minus,&parser::parsePrefixExpression); 
+
+    infixParseFns = std::map<token_type,infixParseFn>();
+    registerInfix(token_type::plus,&parser::parseInfixExpression);
+    registerInfix(token_type::minus,&parser::parseInfixExpression);
+    registerInfix(token_type::slash,&parser::parseInfixExpression);
+    registerInfix(token_type::asterisk,&parser::parseInfixExpression);
+    registerInfix(token_type::eq,&parser::parseInfixExpression);
+    registerInfix(token_type::notEq,&parser::parseInfixExpression);
+    registerInfix(token_type::lt,&parser::parseInfixExpression);
+    registerInfix(token_type::gt,&parser::parseInfixExpression);
+
     return;
 }                                                                                                                                                                                                                                  
 
@@ -160,13 +180,22 @@ void parser::noPrefixParseFnError(token_type t) noexcept{
     this->errors.push_back(msg);
 }
 
-expression* parser::parseExpression(precedence p) noexcept{
+expression* parser::parseExpression(int p) noexcept{
     prefixParseFn prefix = this->prefixParseFns[this->curToken.tokenType];
     if(prefix == nullptr){
         this->noPrefixParseFnError(this->curToken.tokenType);
         return nullptr;
     }
     expression* leftExp = (this->*prefix)();
+
+    while(!this->peekTokenIs(token_type::semicolon) && p < this->peekPrecedence()){
+        infixParseFn infix = this->infixParseFns[this->peekToken.tokenType];            
+        if(infix == nullptr)
+            return leftExp;
+        this->nextToken();
+
+        leftExp = (this->*infix)(leftExp);
+    }
 
     return leftExp;
 }
@@ -184,16 +213,26 @@ expressionStatement* parser::parseExpressionStatement(void) noexcept{
 
 
 
+int parser::peekPrecedence(void) noexcept{
+    auto it = precedences.find(peekToken.tokenType);
+    if(it != precedences.end()) //if "it" isn't pointing to the end, means that the precedence was found
+        return it->second;
+    return lowest;
+}
 
+int parser::curPrecedence(void) noexcept{
+    auto it = precedences.find(curToken.tokenType);
+    if(it != precedences.end())
+        return it->second;
+    return lowest;
+}
 
+expression* parser::parseInfixExpression(expression* left) noexcept{
+    infixExpression* exp = new infixExpression{curToken,left,curToken.literal};
 
+    int prece = this->curPrecedence();
+    this->nextToken();
+    exp->right = this->parseExpression(prece);
 
-
-
-
-
-
-
-
-
-
+    return exp;
+}
