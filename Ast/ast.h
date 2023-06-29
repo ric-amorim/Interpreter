@@ -70,5 +70,15 @@ public:
 };
 
 
+class integerLiteral : public expression{
+public:
+    token token1;
+    int value;
+
+    integerLiteral(token&);
+    void expressionNode(void) const override {}
+    std::string tokenLiteral(void) const override;
+    std::string strings(void) const override;
+};
 
 

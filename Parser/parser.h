@@ -41,6 +41,7 @@ public:
     expressionStatement* parseExpressionStatement(void) noexcept;
     expression* parseExpression(precedence p) noexcept; 
     expression* parseIdentifier(void);
+    expression* parseIntegerLiteral(void);
 };
 
 

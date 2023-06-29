@@ -164,9 +164,56 @@ void testIdentifierExpression(void){
 
 }
 
+void testIntegerLiteralExpression(void){
+    std::string input{"5;"};
+    
+    lexer lex(input);
+    std::vector<std::string> v;
+    parser pars(lex,v);
+
+    program* p = pars.parseProgram(); 
+    checkParserErrors(pars);
+
+    if(p->statements.size() !=1){
+        std::cerr<<"p.statements doesn't contain 1 statement. got= "
+                 << p->statements.size()<<std::endl;
+        std::exit(EXIT_FAILURE);
+
+    }
+
+    for(auto stmt : p->statements){
+        auto intStmt = dynamic_cast<expressionStatement*>(stmt);
+        if(!intStmt){
+            std::cerr<<"statements not expressionStatement. got= "<<intStmt<<std::endl;
+            exit(EXIT_FAILURE);
+        }
+
+        auto intLiteral = dynamic_cast<integerLiteral*>(intStmt->expressions);
+        if(!intLiteral){
+            std::cerr<<"exp not integerLiteral. got= "<<intStmt->expressions<<std::endl;
+            exit(EXIT_FAILURE);
+        }
+        if(intLiteral->value != 5){
+            std::cerr<<"ident.value not '5'. got "
+                     <<intLiteral->value<<std::endl;
+            exit(EXIT_FAILURE);
+        }
+        if(intLiteral->tokenLiteral() != "5"){
+            std::cerr<<"ident.tokenLiteral not '5'. got "
+                     <<intLiteral->tokenLiteral()<<std::endl;
+            exit(EXIT_FAILURE);
+        }
+    }
+    std::cout<< "Everything is okay"<<std::endl;
+    return;
+
+
+}
+
 int main(void){
     //testLetStatements();
     //testReturnStatements();
-    testIdentifierExpression();
+    //testIdentifierExpression();
+    testIntegerLiteralExpression();
     return 0;
 }

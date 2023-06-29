@@ -1,4 +1,5 @@
 #include "parser.h"
+#include <stdexcept>
 #include <vector>
 #include <sstream>
 #include <functional>
@@ -12,12 +13,33 @@ parser::parser(lexer l,std::vector<std::string> errors)
 
     prefixParseFns = std::map<token_type,prefixParseFn>();
     registerPrefix(token_type::ident,&parser::parseIdentifier);
+    registerPrefix(token_type::integer,&parser::parseIntegerLiteral);
     
     return;
 }                                                                                                                                                                                                                                  
 
 expression* parser::parseIdentifier(void){
     return new identifier{curToken,curToken.literal};
+}
+
+expression* parser::parseIntegerLiteral(void){
+    integerLiteral* lit = new integerLiteral{curToken};
+    lit->token1 = this->curToken;
+
+    long long value;
+    try{
+        value = std::stoll(this->curToken.literal);
+    }catch (const std::invalid_argument& e){
+        std::string msg = "could not parse " + this->curToken.literal + "as integer";
+        this->errors.push_back(msg);
+        return nullptr;
+    }catch (const std::out_of_range& e){
+        std::string msg = "could not parse " + this->curToken.literal + "as integer (out of range)";
+        this->errors.push_back(msg);
+        return nullptr;
+    }
+    lit->value = value;
+    return lit; 
 }
 
 void parser::nextToken(void) noexcept{

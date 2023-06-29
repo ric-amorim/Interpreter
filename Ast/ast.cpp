@@ -91,5 +91,18 @@ std::string expressionStatement::strings(void) const{
     return " ";
 }
 
+integerLiteral::integerLiteral(token& t) 
+            : token1(t){
+    
+    return;
+}
+
+std::string integerLiteral::tokenLiteral(void) const {
+    return token1.literal;
+}
+
+std::string integerLiteral::strings(void) const {
+    return token1.literal;
+}
 
 
