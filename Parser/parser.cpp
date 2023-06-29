@@ -14,6 +14,8 @@ parser::parser(lexer l,std::vector<std::string> errors)
     prefixParseFns = std::map<token_type,prefixParseFn>();
     registerPrefix(token_type::ident,&parser::parseIdentifier);
     registerPrefix(token_type::integer,&parser::parseIntegerLiteral);
+    registerPrefix(token_type::bang,&parser::parsePrefixExpression);
+    registerPrefix(token_type::minus,&parser::parsePrefixExpression);
     
     return;
 }                                                                                                                                                                                                                                  
@@ -24,7 +26,6 @@ expression* parser::parseIdentifier(void){
 
 expression* parser::parseIntegerLiteral(void){
     integerLiteral* lit = new integerLiteral{curToken};
-    lit->token1 = this->curToken;
 
     long long value;
     try{
@@ -40,6 +41,15 @@ expression* parser::parseIntegerLiteral(void){
     }
     lit->value = value;
     return lit; 
+}
+
+expression* parser::parsePrefixExpression(void){
+    prefixExpression* expression = new prefixExpression{curToken,curToken.literal};
+    this->nextToken();    
+
+    expression->right = this->parseExpression(prefix);
+
+    return expression;
 }
 
 void parser::nextToken(void) noexcept{
@@ -143,10 +153,19 @@ void parser::registerInfix(token_type t,infixParseFn in) noexcept{
     this->infixParseFns[t] = in;
 }
 
+void parser::noPrefixParseFnError(token_type t) noexcept{
+    std::ostringstream oss;
+    oss << "no prefix parse func for " <<tokenToString(t)<< " found";
+    std::string msg = oss.str();
+    this->errors.push_back(msg);
+}
+
 expression* parser::parseExpression(precedence p) noexcept{
     prefixParseFn prefix = this->prefixParseFns[this->curToken.tokenType];
-    if(prefix == nullptr) 
+    if(prefix == nullptr){
+        this->noPrefixParseFnError(this->curToken.tokenType);
         return nullptr;
+    }
     expression* leftExp = (this->*prefix)();
 
     return leftExp;

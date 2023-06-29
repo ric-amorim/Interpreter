@@ -105,4 +105,18 @@ std::string integerLiteral::strings(void) const {
     return token1.literal;
 }
 
+prefixExpression::prefixExpression(token& t,std::string operat)
+             : token1(t), operat(operat){
 
+    return;
+}
+
+std::string prefixExpression::tokenLiteral(void) const{
+    return token1.literal;
+}
+
+std::string prefixExpression::strings(void) const{
+    std::stringstream out;
+    out << "("<<this->operat<<this->right->strings()<<")";
+    return out.str();
+}

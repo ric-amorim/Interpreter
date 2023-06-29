@@ -39,9 +39,11 @@ public:
     void registerPrefix(token_type t,prefixParseFn pre) noexcept;
     void registerInfix(token_type t,infixParseFn in) noexcept;
     expressionStatement* parseExpressionStatement(void) noexcept;
+    void noPrefixParseFnError(token_type t) noexcept;
     expression* parseExpression(precedence p) noexcept; 
     expression* parseIdentifier(void);
     expression* parseIntegerLiteral(void);
+    expression* parsePrefixExpression(void);
 };
 
 

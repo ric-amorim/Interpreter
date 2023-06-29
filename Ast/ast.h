@@ -81,4 +81,17 @@ public:
     std::string strings(void) const override;
 };
 
+class prefixExpression : public expression{
+public:
+    token token1;
+    std::string operat;
+    expression* right;
+
+    prefixExpression(token&,std::string);
+    void expressionNode(void) const override {};
+    std::string tokenLiteral(void) const override;
+    std::string strings(void) const override;
+
+};
+
 

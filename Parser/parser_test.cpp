@@ -1,6 +1,7 @@
 #include "parser.h"
 #include <cstdlib>
 #include <iostream>
+#include <string>
 #include <vector>
 
 void checkParserErrors(parser p){
@@ -210,10 +211,85 @@ void testIntegerLiteralExpression(void){
 
 }
 
+bool testIntegerLiteral(expression* il, int value) {
+    auto intLiteral = dynamic_cast<integerLiteral*>(il);
+    if(!intLiteral){
+        std::cerr<<"exp not integerLiteral. got= "<<il<<std::endl;
+        exit(EXIT_FAILURE);
+    }
+    if(intLiteral->value != value){
+        std::cerr<<"ident.value not '"<<value<<"'. got "
+                 <<intLiteral->value<<std::endl;
+        exit(EXIT_FAILURE);
+    }
+    if(intLiteral->tokenLiteral() != std::to_string(value)){
+        std::cerr<<"ident.tokenLiteral not '"<<value<<"'. got "
+                 <<intLiteral->tokenLiteral()<<std::endl;
+        exit(EXIT_FAILURE);
+    }
+    return true;
+
+}
+
+void testParsingPrefixExpression(void){
+    struct prefixTests{
+        std::string input;
+        std::string operat;
+        int integerValue;
+    };
+
+    prefixTests input[2] = {{"!5;","!",5},
+                           {"-15;","-",15}
+    };
+    
+    for(int i=0;i<2;i++){
+        lexer lex(input[i].input);
+        std::vector<std::string> v;
+        parser pars(lex,v);
+
+        program* p = pars.parseProgram(); 
+        checkParserErrors(pars);
+
+        if(p->statements.size() !=1){
+            std::cerr<<"p.statements doesn't contain 1 statement. got= "
+                     << p->statements.size()<<std::endl;
+            std::exit(EXIT_FAILURE);
+
+        }
+
+        for(auto stmt : p->statements){
+            auto intStmt = dynamic_cast<expressionStatement*>(stmt);
+            if(!intStmt){
+                std::cerr<<"statements not expressionStatement. got= "<<intStmt<<std::endl;
+                exit(EXIT_FAILURE);
+            }
+
+            auto exp = dynamic_cast<prefixExpression*>(intStmt->expressions);
+            if(!exp){
+                std::cerr<<"stmt not prefixExpression. got= "<<intStmt->expressions<<std::endl;
+                exit(EXIT_FAILURE);
+            }
+            if(exp->operat != input[i].operat){
+                std::cerr<<"ident.value not '"<<input[i].operat<<"'. got "
+                         <<exp->operat<<std::endl;
+                exit(EXIT_FAILURE);
+            }
+            if(!testIntegerLiteral(exp->right,input[i].integerValue)){
+                    return;
+            }
+        }
+        std::cout<< "Everything is okay"<<std::endl;
+    }
+    return;
+
+
+}
+
 int main(void){
     //testLetStatements();
     //testReturnStatements();
     //testIdentifierExpression();
-    testIntegerLiteralExpression();
+    //testIntegerLiteralExpression();
+    testParsingPrefixExpression();
     return 0;
 }
