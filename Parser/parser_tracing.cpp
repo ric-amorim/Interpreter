@@ -21,14 +21,3 @@ void decIdent() {
     traceLevel--;
 }
 
-std::string trace(const std::string& msg) {
-    incIdent();
-    tracePrint("BEGIN " + msg);
-    return msg;
-}
-
-void untrace(const std::string& msg) {
-    tracePrint("END " + msg);
-    decIdent();
-}
-
