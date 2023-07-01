@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <variant>
 
 void checkParserErrors(parser p){
     std::vector<std::string> errors = p.error(); 
@@ -389,6 +390,26 @@ void testOperatorPrecedenceParsing(void){
     }
     return;
 }
+
+bool testIdentifier(expression* exp,std::string value){
+    auto ident = dynamic_cast<identifier*>(exp);
+    if(ident == nullptr){
+        std::cerr<<"Exp not identifier*. got= "<<exp<<std::endl;
+        return false;
+    }
+    if(ident->value != value){
+        std::cerr<<"ident.value not "<<value 
+                 <<". got= "<<ident->value<<std::endl;
+        return false;
+    }
+    if(ident->tokenLiteral() != value){
+        std::cerr<<"ident.tokenLiteral not "<<value
+                 <<". got= "<<ident->tokenLiteral()<<std::endl;
+        return false;
+    } 
+    return true;
+}
+
 
 int main(void){
     //testLetStatements();
