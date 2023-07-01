@@ -1,8 +1,25 @@
 #include "parser.h"
+#include "parser_tracing.h"
 #include <stdexcept>
 #include <vector>
 #include <sstream>
 #include <functional>
+
+class TraceGuard {
+public:
+    TraceGuard(const std::string& msg) : message(msg) {
+        incIdent();
+        tracePrint("BEGIN " + message);
+    }
+
+    ~TraceGuard() {
+        tracePrint("END " + message);
+        decIdent();
+    }
+
+private:
+    std::string message;
+};
 
 std::unordered_map<token_type,int> precedences = {
     {token_type::eq,equals},
@@ -45,6 +62,7 @@ expression* parser::parseIdentifier(void){
 }
 
 expression* parser::parseIntegerLiteral(void){
+    TraceGuard guard("parseIntegerLiteral");
     integerLiteral* lit = new integerLiteral{curToken};
 
     long long value;
@@ -64,6 +82,7 @@ expression* parser::parseIntegerLiteral(void){
 }
 
 expression* parser::parsePrefixExpression(void){
+    TraceGuard guard("parsePrefixExpression");
     prefixExpression* expression = new prefixExpression{curToken,curToken.literal};
     this->nextToken();    
 
@@ -181,6 +200,7 @@ void parser::noPrefixParseFnError(token_type t) noexcept{
 }
 
 expression* parser::parseExpression(int p) noexcept{
+    TraceGuard guard("parseExpression");
     prefixParseFn prefix = this->prefixParseFns[this->curToken.tokenType];
     if(prefix == nullptr){
         this->noPrefixParseFnError(this->curToken.tokenType);
@@ -201,6 +221,7 @@ expression* parser::parseExpression(int p) noexcept{
 }
 
 expressionStatement* parser::parseExpressionStatement(void) noexcept{
+    TraceGuard guard("parseExpressionStatement");
     expressionStatement* stmt = new expressionStatement(this->curToken);
 
     stmt->expressions = this->parseExpression(lowest);
@@ -228,6 +249,7 @@ int parser::curPrecedence(void) noexcept{
 }
 
 expression* parser::parseInfixExpression(expression* left) noexcept{
+    TraceGuard guard("parseInfixExpression");
     infixExpression* exp = new infixExpression{curToken,left,curToken.literal};
 
     int prece = this->curPrecedence();
@@ -236,3 +258,4 @@ expression* parser::parseInfixExpression(expression* left) noexcept{
 
     return exp;
 }
+

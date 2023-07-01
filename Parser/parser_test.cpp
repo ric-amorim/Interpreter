@@ -356,7 +356,8 @@ void testOperatorPrecedenceParsing(void){
         std::string expected;
     };
 
-    prefixTests input[11] = {
+    prefixTests input[12] = {
+        {"-1 * 2 + 3","(((-1) * 2) + 3)"},
         {"-a * b","((-a) * b)"},
         {"!-a","(!(-a))"},
         {"a + b + c","((a + b) + c)"},
