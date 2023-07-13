@@ -137,3 +137,19 @@ std::string infixExpression::strings(void) const{
         << this->right->strings()<<")";
     return out.str();
 }
+
+
+boolean::boolean(token& t,bool b)
+      : token1(t), value(b){
+
+        return;
+}
+
+std::string boolean::tokenLiteral(void) const{
+    return token1.literal;
+}
+
+std::string boolean::strings(void) const{
+    return token1.literal;
+}
+

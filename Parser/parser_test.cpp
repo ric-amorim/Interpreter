@@ -294,7 +294,7 @@ void testParsinInfixExpressions(void){
         int rightValue;
     };
 
-    prefixTests input[8] = {
+    prefixTests input[11] = {
         {"5 + 5;",5,"+",5},
         {"5 - 5;",5,"-",5},
         {"5 * 5;",5,"*",5},
@@ -303,9 +303,12 @@ void testParsinInfixExpressions(void){
         {"5 < 5;",5,"<",5},
         {"5 == 5;",5,"==",5},
         {"5 != 5;",5,"!=",5},
+        {"true == true", true, "==", true},
+        {"true != false", true, "!=", false},
+        {"false == false", false, "==", false},
     };
     
-    for(int i=0;i<8;i++){
+    for(int i=0;i<11;i++){
         lexer lex(input[i].input);
         std::vector<std::string> v;
         parser pars(lex,v);
@@ -357,7 +360,7 @@ void testOperatorPrecedenceParsing(void){
         std::string expected;
     };
 
-    prefixTests input[12] = {
+    prefixTests input[18] = {
         {"-1 * 2 + 3","(((-1) * 2) + 3)"},
         {"-a * b","((-a) * b)"},
         {"!-a","(!(-a))"},
@@ -369,10 +372,14 @@ void testOperatorPrecedenceParsing(void){
         {"3 + 4; -5 * 5","(3 + 4)((-5) * 5)"},
         {"5 > 4 == 3 < 4","((5 > 4) == (3 < 4))"},
         {"5 < 4 != 3 > 4","((5 < 4) != (3 > 4))"},
-        {"3 + 4 * 5 == 3 * 1 + 4 * 5","((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))"}
+        {"3 + 4 * 5 == 3 * 1 + 4 * 5","((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))"},
+        {"true","true"},
+        {"false","false"},
+        {"3 > 5 == false","((3 > 5) == false)"},
+        {"3 < 5 == true","((3 < 5) == true)"}
     };
     
-    for(int i=0;i<11;i++){
+    for(int i=0;i<18;i++){
         lexer lex(input[i].input);
         std::vector<std::string> v;
         parser pars(lex,v);

@@ -49,6 +49,8 @@ public:
     int peekPrecedence(void) noexcept;
     int curPrecedence(void) noexcept;
     expression* parseInfixExpression(expression*) noexcept;
+
+    expression* parseBoolean(void);
 };
 
 

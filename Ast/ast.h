@@ -108,3 +108,14 @@ public:
 
 };
 
+class boolean : public expression{
+public:
+    token token1;
+    bool value;
+
+    boolean(token&,bool);
+    void expressionNode(void) const override {};
+    std::string tokenLiteral(void) const override;
+    std::string strings(void) const override;
+};
+

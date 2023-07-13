@@ -43,6 +43,8 @@ parser::parser(lexer l,std::vector<std::string> errors)
     registerPrefix(token_type::integer,&parser::parseIntegerLiteral);
     registerPrefix(token_type::bang,&parser::parsePrefixExpression);
     registerPrefix(token_type::minus,&parser::parsePrefixExpression); 
+    registerPrefix(token_type::trueKey,&parser::parseBoolean);
+    registerPrefix(token_type::falseKey,&parser::parseBoolean);
 
     infixParseFns = std::map<token_type,infixParseFn>();
     registerInfix(token_type::plus,&parser::parseInfixExpression);
@@ -56,6 +58,11 @@ parser::parser(lexer l,std::vector<std::string> errors)
 
     return;
 }                                                                                                                                                                                                                                  
+
+expression* parser::parseBoolean(void){
+    return new boolean{curToken,curTokenIs(token_type::trueKey)};
+
+}
 
 expression* parser::parseIdentifier(void){
     return new identifier{curToken,curToken.literal};
