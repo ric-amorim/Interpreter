@@ -5,7 +5,6 @@
 #include <ostream>
 #include <string>
 #include <vector>
-#include <variant>
 
 void checkParserErrors(parser p){
     std::vector<std::string> errors = p.error(); 
@@ -194,7 +193,7 @@ void testIntegerLiteralExpression(void){
 
         auto intLiteral = dynamic_cast<integerLiteral*>(intStmt->expressions);
         if(!intLiteral){
-            std::cerr<<"exp not integerLiteral. got= "<<intStmt->expressions<<std::endl;
+            std::cerr<<"exp not integerLiteral . got= "<<intStmt->expressions<<std::endl;
             exit(EXIT_FAILURE);
         }
         if(intLiteral->value != 5){
@@ -217,7 +216,7 @@ void testIntegerLiteralExpression(void){
 bool testIntegerLiteral(expression* il, int value) {
     auto intLiteral = dynamic_cast<integerLiteral*>(il);
     if(!intLiteral){
-        std::cerr<<"exp not integerLiteral. got= "<<il<<std::endl;
+        std::cerr<<"exp not integerLiteral. got= "<<typeid(*il).name()<<std::endl;
         exit(EXIT_FAILURE);
     }
     if(intLiteral->value != value){
@@ -329,14 +328,13 @@ bool testIdentifier(expression* exp,std::string value){
 
 
 
-bool testLiteralExpression(expression* exp, void* expected){
-    if(auto v = static_cast<int*>(expected))
-        return testIntegerLiteral(exp,static_cast<int64_t>(*v));
-    if(auto v = static_cast<int64_t*>(expected))
+//error Here !!!!!!!!!!!!!!
+bool testLiteralExpression(expression* exp, const void* expected){
+    if(const auto v = static_cast<const int*>(expected))
         return testIntegerLiteral(exp,*v);
-    if(auto v = static_cast<std::string*>(expected))
+    if(const auto v = static_cast<const std::string*>(expected))
         return testIdentifier(exp,*v);
-    if(auto v = static_cast<bool*>(expected))
+    if(const auto v = static_cast<const bool*>(expected))
         return testBooleanLiteral(exp,*v);
     std::cerr<<"type of exp not handled. got= "<<typeid(*exp).name()<<std::endl;
     return false;
@@ -344,20 +342,20 @@ bool testLiteralExpression(expression* exp, void* expected){
 
 
 
-bool testInfixExpression(expression* exp,void* left,std::string operat,void* right){
+bool testInfixExpression(expression* exp,const void* left,std::string operat,const void* right){
     auto opExp = dynamic_cast<infixExpression*>(exp);
     if(!opExp){
         std::cerr<<"exp is not an infixExpression. got= "<<typeid(*exp).name()<<std::endl;
         return false;
     }
-    if(!testLiteralExpression(opExp->left,left)){
+    if(!testLiteralExpression(opExp->left,const_cast<void*>(left))){
         return false;
     }
     if(opExp->operat != operat){
         std::cerr<<"Opeartor is not "<<operat<<". got= "<<opExp->operat<<std::endl;
         return false;
     }
-    if(!testLiteralExpression(opExp->right,right)){
+    if(!testLiteralExpression(opExp->right,const_cast<void*>(right))){
         return false;
     }
     return true;
@@ -483,6 +481,121 @@ void testOperatorPrecedenceParsing(void){
     return;
 }
 
+void testIfExpression(void){
+    std::string input = {"if (x < y) { x }"};
+
+    lexer lex(input);
+    std::vector<std::string> v;
+    parser pars(lex,v);
+
+    program* p = pars.parseProgram();
+    checkParserErrors(pars);
+
+    if(p->statements.size() != 1){
+        std::cerr<<"program.statements does not contain "<<1<<". got= "
+                 <<p->statements.size()<<std::endl;
+        exit(EXIT_FAILURE);
+    }
+    auto stmt = dynamic_cast<expressionStatement*>(p->statements[0]);
+    if(!stmt){
+        std::cerr<<"program.statements[0] is not expressionStatement. got= "
+                 <<p->statements[0]<<std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    auto exp = dynamic_cast<ifExpression*>(stmt->expressions);
+    if(!exp){
+        std::cerr<<"stmt.expression is not ifExpression. got= "
+            <<stmt->expressions<<std::endl;
+        exit(EXIT_FAILURE);
+    }
+    if(!testInfixExpression(exp->condition,static_cast<const void*>("x"),"<",static_cast<const void*>("y")))
+            return;
+    if(exp->consequence->statements.size() != 1){
+        std::cerr<<"consequence is not 1 statements. got= "
+                 <<exp->consequence->statements.size()<<std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    auto consequence = dynamic_cast<expressionStatement*>(exp->consequence->statements[0]);
+    if(!consequence){
+        std::cerr<<"statements[0] is not expressionStatement. got= "
+                 <<exp->consequence->statements[0]<<std::endl;
+        exit(EXIT_FAILURE);
+    } 
+    if(!testIdentifier(consequence->expressions,"x"))
+        return;
+    if(exp->alternative != nullptr){
+        std::cerr<<"exp.alternative.statements was not null.got= "
+                 <<exp->alternative<<std::endl;
+        exit(EXIT_FAILURE);
+    }
+    std::cout<< "Everything is okay"<<std::endl;
+}
+
+void testIfElseExpression(void){
+    std::string input = {"if (x < y) { x } else { y }"};
+
+    lexer lex(input);
+    std::vector<std::string> v;
+    parser pars(lex,v);
+
+    program* p = pars.parseProgram();
+    checkParserErrors(pars);
+
+    if(p->statements.size() != 1){
+        std::cerr<<"program.statements does not contain "<<1<<". got= "
+                 <<p->statements.size()<<std::endl;
+        exit(EXIT_FAILURE);
+    }
+    auto stmt = dynamic_cast<expressionStatement*>(p->statements[0]);
+    if(!stmt){
+        std::cerr<<"program.statements[0] is not expressionStatement. got= "
+                 <<p->statements[0]<<std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    auto exp = dynamic_cast<ifExpression*>(stmt->expressions);
+    if(!exp){
+        std::cerr<<"stmt.expression is not ifExpression. got= "
+            <<stmt->expressions<<std::endl;
+        exit(EXIT_FAILURE);
+    }
+    if(!testInfixExpression(exp->condition,static_cast<const void*>("x"),"<",static_cast<const void*>("y")))
+            return;
+    if(exp->consequence->statements.size() != 1){
+        std::cerr<<"consequence is not 1 statements. got= "
+                 <<exp->consequence->statements.size()<<std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    auto consequence = dynamic_cast<expressionStatement*>(exp->consequence->statements[0]);
+    if(!consequence){
+        std::cerr<<"statements[0] is not expressionStatement. got= "
+                 <<exp->consequence->statements[0]<<std::endl;
+        exit(EXIT_FAILURE);
+    } 
+    if(!testIdentifier(consequence->expressions,"x"))
+        return;
+
+    if(exp->alternative->statements.size()!= 1){
+        std::cerr<<"exp.alternative.statements does not contain 1 statement.got= "
+                 <<exp->alternative->statements.size()<<std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    auto alternative = dynamic_cast<expressionStatement*>(exp->alternative->statements[0]); 
+    if (!alternative) {
+        std::cerr<<"Statements[0] is not expressionStatement. got= "
+			<<exp->alternative->statements[0]<<std::endl;
+        exit(EXIT_FAILURE);
+	}
+
+	if (!testIdentifier(alternative->expressions, "y"))
+		return;
+
+    std::cout<< "Everything is okay"<<std::endl;
+}
 int main(void){
     //testLetStatements();
     //testReturnStatements();
@@ -490,6 +603,8 @@ int main(void){
     //testIntegerLiteralExpression();
     //testParsingPrefixExpression();
     //testParsinInfixExpressions();
-    testOperatorPrecedenceParsing();
+    //testOperatorPrecedenceParsing();
+    //testIfExpression();
+    testIfElseExpression();
     return 0;
 }

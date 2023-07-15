@@ -153,3 +153,34 @@ std::string boolean::strings(void) const{
     return token1.literal;
 }
 
+ifExpression::ifExpression(token& t)
+        : token1(t){
+    return;
+}
+
+std::string ifExpression::tokenLiteral(void) const{
+    return token1.literal;
+}
+
+std::string ifExpression::strings(void) const{
+    std::stringstream out;
+    out<<"if"<<condition->strings()<<" "<<consequence->strings();
+
+    if(alternative !=nullptr){
+        out<<"else "<<alternative->strings();
+    }
+    return out.str();
+}
+
+std::string blockStatement::tokenLiteral(void) const{
+    return token1.literal;
+}
+
+std::string blockStatement::strings(void) const {
+    std::stringstream out;
+    
+    for(const auto& s : statements)
+        out<<s->strings();
+    return out.str();
+}
+

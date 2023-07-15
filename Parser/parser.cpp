@@ -46,6 +46,7 @@ parser::parser(lexer l,std::vector<std::string> errors)
     registerPrefix(token_type::trueKey,&parser::parseBoolean);
     registerPrefix(token_type::falseKey,&parser::parseBoolean);
     registerPrefix(token_type::lparen,&parser::parseGroupedExpression);
+    registerPrefix(token_type::ifKey,&parser::parseIfExpression);
 
     infixParseFns = std::map<token_type,infixParseFn>();
     registerInfix(token_type::plus,&parser::parseInfixExpression);
@@ -63,6 +64,47 @@ parser::parser(lexer l,std::vector<std::string> errors)
 expression* parser::parseBoolean(void){
     return new boolean{curToken,curTokenIs(token_type::trueKey)};
 
+}
+
+blockStatement* parser::parseBlockStatement(void) noexcept{
+    auto block = new blockStatement();
+    block->token1 = this->curToken;
+    block->statements = std::vector<statement*>();
+
+    this->nextToken();
+
+    while(!this->curTokenIs(token_type::rbrace) && !this->curTokenIs(token_type::eof)){
+        auto stmt = this->parseStatement();
+        if(stmt != nullptr)
+            block->statements.push_back(stmt);
+        this->nextToken();
+    }
+    return block;
+}
+
+expression* parser::parseIfExpression(void){
+    auto exp = new ifExpression{curToken};
+
+    if(!this->expectPeek(token_type::lparen))
+        return nullptr;
+    this->nextToken();
+    exp->condition = this->parseExpression(lowest);
+
+    if(!this->expectPeek(token_type::rparen))
+        return nullptr;
+    if(!this->expectPeek(token_type::lbrace))
+        return nullptr;
+
+    exp->consequence = this->parseBlockStatement();
+
+    if(this->peekTokenIs(token_type::elseKey)){
+        this->nextToken();
+
+        if(!this->expectPeek(token_type::lbrace))
+            return nullptr;
+        exp->alternative = this->parseBlockStatement();
+    }
+    return exp;
 }
 
 expression* parser::parseGroupedExpression(void){

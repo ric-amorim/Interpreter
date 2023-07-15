@@ -24,6 +24,15 @@ struct program : public node{
     std::string strings(void) const override;
 };
 
+struct blockStatement : public node{
+    token token1;
+    std::vector<statement*> statements;
+
+    void statementNode(void);
+    std::string tokenLiteral(void) const override;
+    std::string strings(void) const override;
+};
+
 class identifier : public expression{
 public:
     token token1;
@@ -119,3 +128,16 @@ public:
     std::string strings(void) const override;
 };
 
+class ifExpression : public expression{
+public:
+    token token1;
+    expression* condition;
+    blockStatement* consequence;
+    blockStatement* alternative;
+
+    ifExpression(token&);
+    void expressionNode(void) const override {};
+    std::string tokenLiteral(void) const override;
+    std::string strings(void) const override;
+
+};

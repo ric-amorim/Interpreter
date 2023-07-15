@@ -53,6 +53,9 @@ public:
     expression* parseBoolean(void);
 
     expression* parseGroupedExpression(void);
+
+    expression* parseIfExpression(void);
+    blockStatement* parseBlockStatement(void) noexcept;
 };
 
 
