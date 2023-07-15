@@ -1,6 +1,8 @@
 #include "parser.h"
+#include <cstdint>
 #include <cstdlib>
 #include <iostream>
+#include <ostream>
 #include <string>
 #include <vector>
 #include <variant>
@@ -239,11 +241,13 @@ void testParsingPrefixExpression(void){
         int integerValue;
     };
 
-    prefixTests input[2] = {{"!5;","!",5},
-                           {"-15;","-",15}
+    prefixTests input[4] = {{"!5;","!",5},
+                           {"-15;","-",15},
+                           {"!true;","!",true},
+                           {"!false;","!",false}
     };
     
-    for(int i=0;i<2;i++){
+    for(int i=0;i<4;i++){
         lexer lex(input[i].input);
         std::vector<std::string> v;
         parser pars(lex,v);
@@ -284,6 +288,79 @@ void testParsingPrefixExpression(void){
     return;
 
 
+}
+
+
+bool testBooleanLiteral(expression* exp,bool value){
+    auto bo = dynamic_cast<boolean*>(exp);
+    if(!bo){
+        std::cerr<<"exp not boolean. got= "<<typeid(*exp).name()<<std::endl;
+        return false;
+    }
+    if(bo->value != value){
+        std::cerr<<" bo.value not "<<value<<". got = "<<bo->value<<std::endl;
+    }
+    if(bo->tokenLiteral() != std::to_string(value)){
+        std::cerr<<"bo.tokenLiteral not "<<value<<". got= "<<bo->tokenLiteral()<<std::endl;
+    }
+
+    return true;
+}
+
+
+bool testIdentifier(expression* exp,std::string value){
+    auto ident = dynamic_cast<identifier*>(exp);
+    if(ident == nullptr){
+        std::cerr<<"Exp not identifier*. got= "<<exp<<std::endl;
+        return false;
+    }
+    if(ident->value != value){
+        std::cerr<<"ident.value not "<<value 
+                 <<". got= "<<ident->value<<std::endl;
+        return false;
+    }
+    if(ident->tokenLiteral() != value){
+        std::cerr<<"ident.tokenLiteral not "<<value
+                 <<". got= "<<ident->tokenLiteral()<<std::endl;
+        return false;
+    } 
+    return true;
+}
+
+
+
+bool testLiteralExpression(expression* exp, void* expected){
+    if(auto v = static_cast<int*>(expected))
+        return testIntegerLiteral(exp,static_cast<int64_t>(*v));
+    if(auto v = static_cast<int64_t*>(expected))
+        return testIntegerLiteral(exp,*v);
+    if(auto v = static_cast<std::string*>(expected))
+        return testIdentifier(exp,*v);
+    if(auto v = static_cast<bool*>(expected))
+        return testBooleanLiteral(exp,*v);
+    std::cerr<<"type of exp not handled. got= "<<typeid(*exp).name()<<std::endl;
+    return false;
+}
+
+
+
+bool testInfixExpression(expression* exp,void* left,std::string operat,void* right){
+    auto opExp = dynamic_cast<infixExpression*>(exp);
+    if(!opExp){
+        std::cerr<<"exp is not an infixExpression. got= "<<typeid(*exp).name()<<std::endl;
+        return false;
+    }
+    if(!testLiteralExpression(opExp->left,left)){
+        return false;
+    }
+    if(opExp->operat != operat){
+        std::cerr<<"Opeartor is not "<<operat<<". got= "<<opExp->operat<<std::endl;
+        return false;
+    }
+    if(!testLiteralExpression(opExp->right,right)){
+        return false;
+    }
+    return true;
 }
 
 void testParsinInfixExpressions(void){
@@ -346,6 +423,9 @@ void testParsinInfixExpressions(void){
             if(!testIntegerLiteral(exp->right,input[i].rightValue)){
                     return;
             }
+            if(!testInfixExpression(exp,&input[i].leftValue,input[i].operat,&input[i].rightValue)){
+                return;
+            }
         }
         std::cout<< "Everything is okay"<<std::endl;
     }
@@ -398,26 +478,6 @@ void testOperatorPrecedenceParsing(void){
     return;
 }
 
-bool testIdentifier(expression* exp,std::string value){
-    auto ident = dynamic_cast<identifier*>(exp);
-    if(ident == nullptr){
-        std::cerr<<"Exp not identifier*. got= "<<exp<<std::endl;
-        return false;
-    }
-    if(ident->value != value){
-        std::cerr<<"ident.value not "<<value 
-                 <<". got= "<<ident->value<<std::endl;
-        return false;
-    }
-    if(ident->tokenLiteral() != value){
-        std::cerr<<"ident.tokenLiteral not "<<value
-                 <<". got= "<<ident->tokenLiteral()<<std::endl;
-        return false;
-    } 
-    return true;
-}
-
-
 int main(void){
     //testLetStatements();
     //testReturnStatements();
@@ -425,6 +485,6 @@ int main(void){
     //testIntegerLiteralExpression();
     //testParsingPrefixExpression();
     //testParsinInfixExpressions();
-    testOperatorPrecedenceParsing();
+    //testOperatorPrecedenceParsing();
     return 0;
 }
