@@ -51,6 +51,8 @@ public:
     expression* parseInfixExpression(expression*) noexcept;
 
     expression* parseBoolean(void);
+
+    expression* parseGroupedExpression(void);
 };
 
 

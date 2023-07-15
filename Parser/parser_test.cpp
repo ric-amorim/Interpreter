@@ -440,7 +440,7 @@ void testOperatorPrecedenceParsing(void){
         std::string expected;
     };
 
-    prefixTests input[18] = {
+    prefixTests input[21] = {
         {"-1 * 2 + 3","(((-1) * 2) + 3)"},
         {"-a * b","((-a) * b)"},
         {"!-a","(!(-a))"},
@@ -456,10 +456,15 @@ void testOperatorPrecedenceParsing(void){
         {"true","true"},
         {"false","false"},
         {"3 > 5 == false","((3 > 5) == false)"},
-        {"3 < 5 == true","((3 < 5) == true)"}
+        {"3 < 5 == true","((3 < 5) == true)"},
+        {"1 + (2 + 3) + 4","((1 + (2 + 3)) + 4)"},
+        {"(5 + 5) * 2","((5 + 5) * 2)"},
+        {"2 / (5 + 5)","(2 / (5 + 5))"},
+        {"-(5 + 5)","(-(5 + 5))"},
+        {"!(true == true)","(!(true == true))"}
     };
     
-    for(int i=0;i<18;i++){
+    for(int i=0;i<21;i++){
         lexer lex(input[i].input);
         std::vector<std::string> v;
         parser pars(lex,v);
@@ -485,6 +490,6 @@ int main(void){
     //testIntegerLiteralExpression();
     //testParsingPrefixExpression();
     //testParsinInfixExpressions();
-    //testOperatorPrecedenceParsing();
+    testOperatorPrecedenceParsing();
     return 0;
 }
