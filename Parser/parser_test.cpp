@@ -47,79 +47,8 @@ bool testLetStatement(statement* s,std::string name){
     return true;
 }
 
-void testLetStatements(void){
-    std::string input{"let x 5;"
-                      "let = 10;"
-                      "let 838383;"};
-    lexer lex(input);
-    std::vector<std::string> v;
-    parser pars(lex,v);
-
-    program* p = pars.parseProgram(); 
-    checkParserErrors(pars);
-    if(p==nullptr){
-        std::cerr<<"ParseProgram() return nullptr"<<std::endl;
-        std::exit(EXIT_FAILURE);
-    }
-    if(p->statements.size() != 3) {
-        std::cerr<<"p.statements doesn't contain 3 statements. got= "
-                 << p->statements.size()<<std::endl;
-        std::exit(EXIT_FAILURE);
-    }
-
-    std::string test[3] = {
-        {"x"},
-        {"y"},
-        {"foobar"},
-    };
-
-    int n=0;
-    for(auto &i : test){
-        statement* st= p->statements[n];
-        n++;
-        if(!testLetStatement(st,i))
-            return;
-    }
-    std::cout<< "Everything is okay"<<std::endl;
-    return;
-}
 
 
-void testReturnStatements(void){
-    std::string input{"return 5;"
-                      "return 10;"
-                      "return 993322;"};
-    lexer lex(input);
-    std::vector<std::string> v;
-    parser pars(lex,v);
-
-    program* p = pars.parseProgram(); 
-    checkParserErrors(pars);
-    if(p==nullptr){
-        std::cerr<<"ParseProgram() return nullptr"<<std::endl;
-        std::exit(EXIT_FAILURE);
-    }
-    if(p->statements.size() != 3) {
-        std::cerr<<"p.statements doesn't contain 3 statements. got= "
-                 << p->statements.size()<<std::endl;
-        std::exit(EXIT_FAILURE);
-    }
-
-    for(auto stmt : p->statements){
-        auto returnStmt = dynamic_cast<returnStatement*>(stmt);
-        if(!returnStmt){
-            std::cerr<<"statements not returnStatement. got= "<<stmt<<std::endl;
-                continue;
-        }
-        if(returnStmt->tokenLiteral() != "return"){
-            std::cerr<<"returnStmt.tokenLiteral not 'return'. got "
-                     <<returnStmt->tokenLiteral()<<std::endl;
-            exit(EXIT_FAILURE);
-        }
-    }
-    std::cout<< "Everything is okay"<<std::endl;
-    return;
-}
 
 void testIdentifierExpression(void){
     std::string input{"foobar"};
@@ -804,9 +733,90 @@ void testCallExpressionParameterParsing(void){
     }
 }
 
+void testLetStatements(void){
+    struct tests{
+        std::string input;
+        std::string expectedIdentifier;
+        any expectedValue;
+    };
+    any y = std::string("y");
+
+    tests input[3]{{"let x = 5;","x",5},
+                   {"let y = true;","y",true},
+                   {"let foobar = y;","foobar",y}
+    };
+
+    for(auto tt : input){
+        lexer lex(tt.input);
+        std::vector<std::string> v;
+        parser pars(lex,v);
+
+        program* p = pars.parseProgram(); 
+        checkParserErrors(pars);
+        if(p->statements.size() != 1) {
+            std::cerr<<"p.statements doesn't contain 1 statements. got= "
+                     << p->statements.size()<<std::endl;
+            std::exit(EXIT_FAILURE);
+        }
+        auto stmt = p->statements[0];
+        if(!testLetStatement(stmt,tt.expectedIdentifier))
+            return;
+
+        letStatement* letStmt = dynamic_cast<letStatement*>(stmt);
+        expression* val = letStmt->value;
+        if(!testLiteralExpression(val,tt.expectedValue))
+            return;
+
+        std::cout<< "Everything is okay"<<std::endl;
+    }
+}
+
+
+void testReturnStatements(void){
+    struct tests{
+        std::string input;
+        any expectedValue;
+    };
+    any foobar = std::string("foobar");
+    tests input[3]={{"return 5;",5},
+                   {"return true;",true},
+                   {"return foobar;",foobar}
+    };
+
+    for(auto tt : input){
+        lexer lex(tt.input);
+        std::vector<std::string> v;
+        parser pars(lex,v);
+
+        program* p = pars.parseProgram(); 
+        checkParserErrors(pars);
+        if(p->statements.size() != 1) {
+            std::cerr<<"p.statements doesn't contain 1 statements. got= "
+                     << p->statements.size()<<std::endl;
+            std::exit(EXIT_FAILURE);
+        }
+        auto stmt = p->statements[0];
+
+        returnStatement* returnStmt = dynamic_cast<returnStatement*>(stmt);
+        if(!returnStmt){
+            std::cerr<<"stmt not returnStmt. got= "<<stmt<<std::endl;
+            exit(EXIT_FAILURE);
+        }
+        if(returnStmt->tokenLiteral() != "return") {
+            std::cerr<<"returnStmt.tokenLiteral not 'return',got "
+                     <<returnStmt->tokenLiteral()<<std::endl;
+            exit(EXIT_FAILURE);
+        }
+
+        if(!testLiteralExpression(returnStmt->returnValue,tt.expectedValue))
+            return;
+
+        std::cout<< "Everything is okay"<<std::endl;
+    }
+}
 int main(void){
-    //testLetStatements();
-    //testReturnStatements();
+    testLetStatements();
+    testReturnStatements();
     //testIdentifierExpression();
     //testIntegerLiteralExpression();
     //testParsingPrefixExpression();
@@ -817,6 +827,6 @@ int main(void){
     //testFunctionLiteralParsing();
     //testFunctionParameterParsing();
     //testCallExpressionParsing();
-    testCallExpressionParameterParsing();
+    //testCallExpressionParameterParsing();
     return 0;
 }

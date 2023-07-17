@@ -1,11 +1,17 @@
 #include <cstdlib>
 #include <iostream>
 #include <string>
-#include "Lexer/lexer.h"
-
+#include "Parser/parser.h"
+#include <vector>
 
 #define PROMPT ">> "
 
+void printParserErrors(std::vector<std::string> errors){
+    std::cout<<"Woops! We ran into some monkey business here!\n";
+    std::cout<<" parser errors:\n";
+    for(auto msg : errors)
+        std::cout<<"\t"<<msg<<"\n";
+}
 
 void repl::start(void) noexcept{
     for(;;){
@@ -15,13 +21,17 @@ void repl::start(void) noexcept{
         std::getline(std::cin,str);
         
         lexer lex(str);
-        token token;
+        std::vector<std::string> v;
+        parser pars(lex,v);
 
-        while(token.tokenType != token_type::eof){
-            lex.nextToken(token);
-            std::cout<<"{Type:"<<token.tokenType
-                     <<" Literal:"<<token.literal<<" }"<<std::endl;
+        program* p = pars.parseProgram(); 
+        if(pars.error().size() !=0){
+            printParserErrors(pars.error());
+            continue;
         }
+
+        std::cout<<p->strings()<<std::endl;
+
     }
     exit(EXIT_SUCCESS);
 }

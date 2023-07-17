@@ -5,6 +5,7 @@
 #include <sstream>
 #include <functional>
 
+/* tracing
 class TraceGuard {
 public:
     TraceGuard(const std::string& msg) : message(msg) {
@@ -20,7 +21,7 @@ public:
 private:
     std::string message;
 };
-
+*/
 std::unordered_map<token_type,int> precedences = {
     {token_type::eq,equals},
     {token_type::notEq,equals},
@@ -192,7 +193,7 @@ expression* parser::parseIdentifier(void){
 }
 
 expression* parser::parseIntegerLiteral(void){
-    TraceGuard guard("parseIntegerLiteral");
+    //TraceGuard guard("parseIntegerLiteral");
     integerLiteral* lit = new integerLiteral{curToken};
 
     long long value;
@@ -212,7 +213,7 @@ expression* parser::parseIntegerLiteral(void){
 }
 
 expression* parser::parsePrefixExpression(void){
-    TraceGuard guard("parsePrefixExpression");
+    //TraceGuard guard("parsePrefixExpression");
     prefixExpression* expression = new prefixExpression{curToken,curToken.literal};
     this->nextToken();    
 
@@ -297,9 +298,13 @@ letStatement* parser::parseLetStatement(void) noexcept{
     if(!this->expectPeek(token_type::assign)){
         return nullptr;
     }
+    this->nextToken();
+    
+    stmt->value = this->parseExpression(lowest);
 
-    while(!this->curTokenIs(token_type::semicolon))
+    if(this->peekTokenIs(token_type::semicolon))
         this->nextToken();
+
     return stmt;
 }
 
@@ -308,8 +313,11 @@ returnStatement* parser::parseReturnStatement(void) noexcept{
 
     this->nextToken();
 
-    while(!this->curTokenIs(token_type::semicolon))
+    stmt->returnValue = this->parseExpression(lowest);
+
+    if(this->peekTokenIs(token_type::semicolon))
         this->nextToken();
+
     return stmt;
 
 }
@@ -330,7 +338,7 @@ void parser::noPrefixParseFnError(token_type t) noexcept{
 }
 
 expression* parser::parseExpression(int p) noexcept{
-    TraceGuard guard("parseExpression");
+    //TraceGuard guard("parseExpression");
     prefixParseFn prefix = this->prefixParseFns[this->curToken.tokenType];
     if(prefix == nullptr){
         this->noPrefixParseFnError(this->curToken.tokenType);
@@ -351,7 +359,7 @@ expression* parser::parseExpression(int p) noexcept{
 }
 
 expressionStatement* parser::parseExpressionStatement(void) noexcept{
-    TraceGuard guard("parseExpressionStatement");
+    //TraceGuard guard("parseExpressionStatement");
     expressionStatement* stmt = new expressionStatement(this->curToken);
 
     stmt->expressions = this->parseExpression(lowest);
@@ -379,7 +387,7 @@ int parser::curPrecedence(void) noexcept{
 }
 
 expression* parser::parseInfixExpression(expression* left) noexcept{
-    TraceGuard guard("parseInfixExpression");
+    //TraceGuard guard("parseInfixExpression");
     infixExpression* exp = new infixExpression{curToken,left,curToken.literal};
 
     int prece = this->curPrecedence();
