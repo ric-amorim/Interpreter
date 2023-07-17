@@ -328,34 +328,39 @@ bool testIdentifier(expression* exp,std::string value){
 
 
 
-//error Here !!!!!!!!!!!!!!
-bool testLiteralExpression(expression* exp, const void* expected){
-    if(const auto v = static_cast<const int*>(expected))
-        return testIntegerLiteral(exp,*v);
-    if(const auto v = static_cast<const std::string*>(expected))
-        return testIdentifier(exp,*v);
-    if(const auto v = static_cast<const bool*>(expected))
-        return testBooleanLiteral(exp,*v);
+bool testLiteralExpression(expression* exp, const any& expected){
+    if(expected.isType<int>()){
+        int v = expected.cast<int>();
+        return testIntegerLiteral(exp,v);
+    }
+    if(expected.isType<std::string>()){
+        std::string v = expected.cast<std::string>();
+        return testIdentifier(exp,v);
+    }
+    if(expected.isType<bool>()){
+        bool v = expected.cast<bool>();
+        return testBooleanLiteral(exp,v);
+    }
     std::cerr<<"type of exp not handled. got= "<<typeid(*exp).name()<<std::endl;
     return false;
 }
 
 
 
-bool testInfixExpression(expression* exp,const void* left,std::string operat,const void* right){
+bool testInfixExpression(expression* exp,const any& left,std::string operat,const any& right){
     auto opExp = dynamic_cast<infixExpression*>(exp);
     if(!opExp){
         std::cerr<<"exp is not an infixExpression. got= "<<typeid(*exp).name()<<std::endl;
         return false;
     }
-    if(!testLiteralExpression(opExp->left,const_cast<void*>(left))){
+    if(!testLiteralExpression(opExp->left,left)){
         return false;
     }
     if(opExp->operat != operat){
         std::cerr<<"Opeartor is not "<<operat<<". got= "<<opExp->operat<<std::endl;
         return false;
     }
-    if(!testLiteralExpression(opExp->right,const_cast<void*>(right))){
+    if(!testLiteralExpression(opExp->right,right)){
         return false;
     }
     return true;
@@ -509,7 +514,9 @@ void testIfExpression(void){
             <<stmt->expressions<<std::endl;
         exit(EXIT_FAILURE);
     }
-    if(!testInfixExpression(exp->condition,static_cast<const void*>("x"),"<",static_cast<const void*>("y")))
+    any l = std::string("x");
+    any r = std::string("y");
+    if(!testInfixExpression(exp->condition,l,"<",r))
             return;
     if(exp->consequence->statements.size() != 1){
         std::cerr<<"consequence is not 1 statements. got= "
@@ -561,7 +568,9 @@ void testIfElseExpression(void){
             <<stmt->expressions<<std::endl;
         exit(EXIT_FAILURE);
     }
-    if(!testInfixExpression(exp->condition,static_cast<const void*>("x"),"<",static_cast<const void*>("y")))
+    any l = std::string("x");
+    any r = std::string("y");
+    if(!testInfixExpression(exp->condition,l,"<",r))
             return;
     if(exp->consequence->statements.size() != 1){
         std::cerr<<"consequence is not 1 statements. got= "

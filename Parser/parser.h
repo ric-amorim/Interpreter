@@ -58,4 +58,38 @@ public:
     blockStatement* parseBlockStatement(void) noexcept;
 };
 
+class any {   // class to have a variable that can take various types
+public:
+    any() : data(nullptr) {}
 
+    template <typename T>
+    any(const T& value) : data(new holder<T>(value)) {}
+
+    template <typename T>
+    T cast() const {
+        if (typeid(*data) == typeid(holder<T>)) {
+            return static_cast<holder<T>*>(data)->value;
+        }
+        throw std::bad_cast();
+    }
+
+    template <typename T>
+    bool isType() const {
+        return typeid(*data) == typeid(holder<T>);
+    }
+
+private:
+    class baseHolder {
+    public:
+        virtual ~baseHolder() {}
+    };
+
+    template <typename T>
+    class holder : public baseHolder {
+    public:
+        holder(const T& value) : value(value) {}
+        T value;
+    };
+
+    baseHolder* data;
+};
