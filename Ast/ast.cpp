@@ -214,3 +214,23 @@ std::string functionLiteral::strings(void) const{
 
     return out.str();
 }
+
+callExpression::callExpression(token& t,expression* exp)
+            : token1(t),function(exp){
+    return;
+}
+
+std::string callExpression::tokenLiteral(void) const{
+    return token1.literal;
+}
+
+std::string callExpression::strings(void) const{
+    std::stringstream out;
+    std::vector<std::string> args;
+
+    for(auto a : this->arguments)
+        args.push_back(a->strings());
+
+    out<<this->function->strings()<<"("<<join(args,", ")<<")";
+    return out.str();
+}

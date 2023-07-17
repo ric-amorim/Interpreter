@@ -443,7 +443,7 @@ void testOperatorPrecedenceParsing(void){
         std::string expected;
     };
 
-    prefixTests input[21] = {
+    prefixTests input[24] = {
         {"-1 * 2 + 3","(((-1) * 2) + 3)"},
         {"-a * b","((-a) * b)"},
         {"!-a","(!(-a))"},
@@ -464,10 +464,13 @@ void testOperatorPrecedenceParsing(void){
         {"(5 + 5) * 2","((5 + 5) * 2)"},
         {"2 / (5 + 5)","(2 / (5 + 5))"},
         {"-(5 + 5)","(-(5 + 5))"},
-        {"!(true == true)","(!(true == true))"}
+        {"!(true == true)","(!(true == true))"},
+        {"a + add(b * c) + d","((a + add((b * c))) + d)"},
+        {"add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))","add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))"},
+        {"add(a + b + c * d / f + g)","add((((a + b) + ((c * d) / f)) + g))"}
     };
     
-    for(int i=0;i<21;i++){
+    for(int i=0;i<24;i++){
         lexer lex(input[i].input);
         std::vector<std::string> v;
         parser pars(lex,v);
@@ -704,6 +707,102 @@ void testFunctionParameterParsing(void){
 
 }
 
+void testCallExpressionParsing(void){
+    std::string input = {"add(1, 2 * 3, 4 + 5);"};
+
+    lexer lex(input);
+    std::vector<std::string> v;
+    parser pars(lex,v);
+
+    program* p = pars.parseProgram();
+    checkParserErrors(pars);
+
+    if(p->statements.size() != 1){
+        std::cerr<<" program.statements does not contain "<<1<<" statements. got= "
+                 <<p->statements.size()<<std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    auto stmt = dynamic_cast<expressionStatement*>(p->statements[0]);
+    if(!stmt){
+        std::cerr<<"statements is not expressionStatement. got= "
+                 <<p->statements[0]<<std::endl;
+        exit(EXIT_FAILURE);
+    }
+    auto exp = dynamic_cast<callExpression*>(stmt->expressions);
+    if(!exp){
+        std::cerr<<"stmt.expression is not callExpression. got= "
+                 <<stmt->expressions<<std::endl;
+        exit(EXIT_FAILURE);
+    }
+    if(!testIdentifier(exp->function,"add"))
+        return;
+
+    if(exp->arguments.size() != 3){
+        std::cerr<<"wrong length of arguments. got= "
+                 <<exp->arguments.size()<<std::endl;
+        exit(EXIT_FAILURE);
+
+    }
+    testLiteralExpression(exp->arguments[0],1);
+    testInfixExpression(exp->arguments[1],2,"*",3);
+    testInfixExpression(exp->arguments[2],4,"+",5);
+
+    std::cout<< "Everything is okay"<<std::endl;
+    
+}
+
+void testCallExpressionParameterParsing(void){
+    struct tests{
+        std::string input;
+        std::string expectedIdent;
+        std::vector<std::string> expectedArgs;
+
+    };
+
+    tests input[3] = {{"add();","add",{}},
+                      {"add(1);","add",{"1"}},
+                      {"add(1, 2 * 3, 4 + 5);","add",{"1","(2 * 3)","(4 + 5)"}}
+    };
+
+    for(auto tt : input){
+        lexer lex(tt.input);
+        std::vector<std::string> v;
+        parser pars(lex,v);
+
+        program* p = pars.parseProgram();
+        checkParserErrors(pars);
+
+        auto stmt = dynamic_cast<expressionStatement*>(p->statements[0]);
+        auto exp = dynamic_cast<callExpression*>(stmt->expressions);
+
+        if(!exp){
+            std::cerr<<"stmt.expression is not callExpression.got= "
+                     <<stmt->expressions<<std::endl;
+            exit(EXIT_FAILURE);
+        }
+        if(!testIdentifier(exp->function,tt.expectedIdent))
+            return;
+        if(exp->arguments.size() != tt.expectedArgs.size()){
+            std::cerr<<"wrong number of args. want= "<<tt.expectedArgs.size()
+                     <<",got= "<<exp->arguments.size()<<std::endl;
+            exit(EXIT_FAILURE);
+        }
+
+        int i=0;
+        for(auto ident : tt.expectedArgs){
+            if(exp->arguments[i]->strings() != ident){
+                std::cerr<<"argument "<<i<<" wrong. want = "
+                         <<ident<<",got= "<<exp->arguments[i]->strings();
+                exit(EXIT_FAILURE);
+            }
+            i++;
+        }
+    
+        std::cout<< "Everything is okay"<<std::endl;
+
+    }
+}
 
 int main(void){
     //testLetStatements();
@@ -716,6 +815,8 @@ int main(void){
     //testIfExpression();
     //testIfElseExpression();
     //testFunctionLiteralParsing();
-    testFunctionParameterParsing();
+    //testFunctionParameterParsing();
+    //testCallExpressionParsing();
+    testCallExpressionParameterParsing();
     return 0;
 }

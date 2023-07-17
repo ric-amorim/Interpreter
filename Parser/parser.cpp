@@ -29,7 +29,8 @@ std::unordered_map<token_type,int> precedences = {
     {token_type::plus,sum},
     {token_type::minus,sum},
     {token_type::slash,product},
-    {token_type::asterisk,product}
+    {token_type::asterisk,product},
+    {token_type::lparen,call}
 };
 
 parser::parser(lexer l,std::vector<std::string> errors) 
@@ -58,10 +59,36 @@ parser::parser(lexer l,std::vector<std::string> errors)
     registerInfix(token_type::notEq,&parser::parseInfixExpression);
     registerInfix(token_type::lt,&parser::parseInfixExpression);
     registerInfix(token_type::gt,&parser::parseInfixExpression);
+    registerInfix(token_type::lparen,&parser::parseCallExpression);
 
     return;
 }                                                                                                                                                                                                                                  
 
+expression* parser::parseCallExpression(expression* function){
+    auto exp = new callExpression{this->curToken,function};
+    exp->arguments = this->parseCallArguments();
+    return exp;
+}
+
+std::vector<expression*> parser::parseCallArguments(void) noexcept{
+    std::vector<expression*> args;
+    
+    if(this->peekTokenIs(token_type::rparen)){
+        this->nextToken();
+        return args;
+    }
+    this->nextToken();
+    args.push_back(this->parseExpression(lowest));
+
+    while(this->peekTokenIs(token_type::comma)){
+        this->nextToken();
+        this->nextToken();
+        args.push_back(this->parseExpression(lowest));
+    }
+    if(!this->expectPeek(token_type::rparen))
+        return std::vector<expression*>();
+    return args;
+}
 
 expression* parser::parseFunctionalLiteral(void){
     auto lit = new functionLiteral{this->curToken};

@@ -153,3 +153,15 @@ public:
     std::string tokenLiteral(void) const override;
     std::string strings(void) const override;
 };
+
+class callExpression : public expression{
+public:
+    token token1;
+    expression* function;
+    std::vector<expression*> arguments;
+
+    callExpression(token&,expression*);
+    void expressionNode(void) const override {};
+    std::string tokenLiteral(void) const override;
+    std::string strings(void) const override;
+};
