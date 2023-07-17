@@ -141,3 +141,15 @@ public:
     std::string strings(void) const override;
 
 };
+
+class functionLiteral : public expression{
+public:
+    token token1;
+    std::vector<identifier*> parameters;
+    blockStatement* body;
+
+    functionLiteral(token&);
+    void expressionNode(void) const override {};
+    std::string tokenLiteral(void) const override;
+    std::string strings(void) const override;
+};

@@ -184,3 +184,33 @@ std::string blockStatement::strings(void) const {
     return out.str();
 }
 
+functionLiteral::functionLiteral(token& t)
+             : token1(t) {
+    return;
+}
+
+std::string functionLiteral::tokenLiteral(void) const{
+    return token1.literal;
+}
+
+std::string join(const std::vector<std::string>& s,const std::string& separator){
+    std::string res;
+    if(!s.empty()){
+        res += s[0];
+        for(int i= 1;i< s.size();i++)
+            res += separator + s[i];
+    }
+    return res;
+}
+
+std::string functionLiteral::strings(void) const{
+    std::stringstream out;
+    std::vector<std::string> params;
+
+    for(auto p : this->parameters)
+        params.push_back(p->strings());
+
+    out<<tokenLiteral()<<"("<<join(params,", ")<<") "<<this->body->strings();
+
+    return out.str();
+}
