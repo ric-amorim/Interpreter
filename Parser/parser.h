@@ -56,6 +56,9 @@ public:
 
     expression* parseIfExpression(void);
     blockStatement* parseBlockStatement(void) noexcept;
+
+    expression* parseFunctionalLiteral(void);
+    std::vector<identifier*> parseFunctionParameters(void) noexcept;
 };
 
 class any {   // class to have a variable that can take various types

@@ -197,7 +197,7 @@ std::string join(const std::vector<std::string>& s,const std::string& separator)
     std::string res;
     if(!s.empty()){
         res += s[0];
-        for(int i= 1;i< s.size();i++)
+        for(size_t i= 1;i< s.size();i++)
             res += separator + s[i];
     }
     return res;

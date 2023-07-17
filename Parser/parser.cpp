@@ -47,6 +47,7 @@ parser::parser(lexer l,std::vector<std::string> errors)
     registerPrefix(token_type::falseKey,&parser::parseBoolean);
     registerPrefix(token_type::lparen,&parser::parseGroupedExpression);
     registerPrefix(token_type::ifKey,&parser::parseIfExpression);
+    registerPrefix(token_type::function,&parser::parseFunctionalLiteral);
 
     infixParseFns = std::map<token_type,infixParseFn>();
     registerInfix(token_type::plus,&parser::parseInfixExpression);
@@ -60,6 +61,48 @@ parser::parser(lexer l,std::vector<std::string> errors)
 
     return;
 }                                                                                                                                                                                                                                  
+
+
+expression* parser::parseFunctionalLiteral(void){
+    auto lit = new functionLiteral{this->curToken};
+
+    if(!this->expectPeek(token_type::lparen))
+        return nullptr;
+
+    lit->parameters = this->parseFunctionParameters();
+
+    if(!this->expectPeek(token_type::lbrace))
+        return nullptr;
+    lit->body = this->parseBlockStatement();
+
+    return lit;
+}
+
+std::vector<identifier*> parser::parseFunctionParameters(void) noexcept{
+    std::vector<identifier*> identifiers;
+    
+    if(this->peekTokenIs(token_type::rparen)){
+        this->nextToken();
+        return identifiers;
+    }
+    this->nextToken();
+
+    identifier* ident = new identifier{this->curToken,this->curToken.literal};
+    identifiers.push_back(ident);
+
+    while(this->peekTokenIs(token_type::comma)){
+        this->nextToken();
+        this->nextToken();
+        ident = new identifier{this->curToken,this->curToken.literal};
+        identifiers.push_back(ident);
+    }
+
+    if(!this->expectPeek(token_type::rparen)){
+       return std::vector<identifier*>(); 
+    }
+
+    return identifiers;
+}
 
 expression* parser::parseBoolean(void){
     return new boolean{curToken,curTokenIs(token_type::trueKey)};
