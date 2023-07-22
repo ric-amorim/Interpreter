@@ -25,14 +25,14 @@ class Boolean : public object{
 public:
     bool value;
     Boolean(bool);
-    std::string inspect();
-    objectType type();
+    std::string inspect() const override;
+    objectType type() const override;
 };
 
 class Null : public object{
 public:
-    std::string inspect();
-    objectType type();
+    std::string inspect() const override;
+    objectType type() const override;
 };
 
 

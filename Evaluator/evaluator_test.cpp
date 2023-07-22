@@ -32,9 +32,11 @@ void testEvalIntegerExpression(){
         std::string input;
         int expected;
     };
-    tests input[2]{
+    tests input[4]{
         {"5",5},
-        {"10",10}
+        {"10",10},
+        {"-5",-5},
+        {"-10",-10}
     };
     for(tests tt : input){
         object* evaluated = testEval(tt.input);
@@ -75,8 +77,30 @@ void testEvalBooleanExpression(){
     std::cout<<"Everything is okay!"<<std::endl;
 }
 
+void testBangOperator(){
+    struct tests{
+        std::string input;
+        bool expected;
+    };
+    tests input[6]{
+        {"!true",false},
+        {"!false",true},
+        {"!5",false},
+        {"!!true",true},
+        {"!!false",false},
+        {"!!5",true}
+    };
+    for(tests tt : input){
+        object* evaluated = testEval(tt.input);
+        testBooleanObject(evaluated,tt.expected);
+    }
+    std::cout<<"Everything is okay!"<<std::endl;
+
+}
+
 int main(){
-    //testEvalIntegerExpression();
-    testEvalBooleanExpression();
+    testEvalIntegerExpression();
+    //testEvalBooleanExpression();
+    //testBangOperator();
     return 0;
 }

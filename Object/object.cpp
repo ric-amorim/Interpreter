@@ -17,18 +17,20 @@ Boolean::Boolean(bool val) : value(val){
     return;
 }
 
-std::string Boolean::inspect(){
-    return std::to_string(this->value);
+std::string Boolean::inspect() const{
+    if(std::to_string(this->value) == "1")
+        return "true";
+    return "false";
 }
 
-objectType Boolean::type(){
+objectType Boolean::type() const{
     return boolean_oj;
 }
 
-std::string Null::inspect(){
+std::string Null::inspect() const{
     return "null";
 }
 
-objectType Null::type(){
+objectType Null::type() const{
     return null_obj;
 }
