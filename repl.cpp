@@ -1,7 +1,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <string>
-#include "Parser/parser.h"
+#include "Evaluator/evaluator.h"
 #include <vector>
 
 #define PROMPT ">> "
@@ -29,8 +29,13 @@ void repl::start(void) noexcept{
             printParserErrors(pars.error());
             continue;
         }
+        evaluator eval;
+        auto evaluated = eval.eval(p);
+        if(evaluated != nullptr){
+        std::cout<<evaluated->inspect()<<std::endl;
 
-        std::cout<<p->strings()<<std::endl;
+        }
+
 
     }
     exit(EXIT_SUCCESS);
