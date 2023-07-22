@@ -8,24 +8,22 @@ enum objectType{
 
 class object{
 public:
+    virtual ~object() = default;
     virtual objectType type() const = 0;
     virtual std::string inspect() const = 0;
-    virtual ~object() {}
 };
 
 class Integer : public object{
-private:
-    int value;
 public:
+    int value;
     Integer(int);
-    std::string inspect();
-    objectType type();
+    std::string inspect() const override;
+    objectType type() const override;
 };
 
 class Boolean : public object{
-private:
-    bool value;
 public:
+    bool value;
     Boolean(bool);
     std::string inspect();
     objectType type();

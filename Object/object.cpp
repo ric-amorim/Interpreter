@@ -5,11 +5,11 @@ Integer::Integer(int val) : value(val){
     return;
 }
 
-std::string Integer::inspect(){
+std::string Integer::inspect() const {
     return std::to_string(this->value);
 }
 
-objectType Integer::type(){
+objectType Integer::type() const {
     return integer_obj;
 }
 

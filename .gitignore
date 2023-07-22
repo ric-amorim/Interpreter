@@ -2,3 +2,4 @@ lexer
 main
 parser
 ast
+evaluator_test
