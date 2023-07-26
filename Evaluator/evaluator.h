@@ -12,4 +12,8 @@ public:
     object* evalMinusPrefixOperatorExpression(object* right);
     object* evalInfixExpression(std::string operat,object* left, object* right);
     object* evalIntegerInfixExpression(std::string operat,object* left, object* right);
+    object* evalIfExpression(ifExpression* ie);
+    bool isTruthy(object* obj);
 };
+
+

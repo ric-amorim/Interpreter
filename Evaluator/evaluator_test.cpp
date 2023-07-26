@@ -126,9 +126,47 @@ void testBangOperator(){
 
 }
 
+bool testNullObject(object* obj){
+    if(obj->inspect() != "null"){
+        std::cerr<<"object is not null. got "<<typeid(obj).name()<<" ("
+                 <<obj->inspect()<<")"<<std::endl;
+        return false;
+    }
+    return true;
+}
+
+void testIfElseExpression(){
+    struct tests{
+        std::string input;
+        any expected;
+    };
+
+    tests input[7]{
+        {"if (true) { 10 }", 10},
+        {"if (false) { 10 }", nullptr},
+        {"if (1) { 10 }", 10},
+        {"if (1 < 2) { 10 }", 10},
+        {"if (1 > 2) { 10 }", nullptr},
+        {"if (1 > 2) { 10 } else { 20 }", 20},
+        {"if (1 < 2) { 10 } else { 20 }", 10},
+    };
+    for(tests tt : input){
+        object* evaluated = testEval(tt.input);
+        bool integer = tt.expected.isType<int>();
+        if (integer) {
+            testIntegerObject(evaluated,tt.expected.cast<int>());
+        }else{
+            testNullObject(evaluated);
+        }
+    }
+    std::cout<<"Everything is okay!"<<std::endl;
+
+}
+
 int main(){
     //testEvalIntegerExpression();
-    testEvalBooleanExpression();
+    //testEvalBooleanExpression();
     //testBangOperator();
+    testIfElseExpression();
     return 0;
 }

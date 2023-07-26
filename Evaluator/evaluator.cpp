@@ -29,8 +29,36 @@ object* evaluator::eval(node* node){
         object* right = eval(infixNode->right);
         return evalInfixExpression(infixNode->operat,left,right);
     }
+    if(auto blockNode = dynamic_cast<blockStatement*>(node)){
+        return evalStatements(blockNode->statements);
+    }
+    if(auto ifNode = dynamic_cast<ifExpression*>(node)){
+        return evalIfExpression(ifNode);
+    }
     
     return nullptr;
+}
+
+object* evaluator::evalIfExpression(ifExpression* ie){
+    object* condition = eval(ie->condition);
+
+    if(isTruthy(condition)){
+        return eval(ie->consequence);
+    }
+    if(ie->alternative != nullptr){
+        return eval(ie->alternative);
+    }
+    return NULLS;
+}
+
+bool evaluator::isTruthy(object* obj){
+    if(obj == NULLS)
+        return false;
+    if(obj == TRUE)
+        return true;
+    if(obj == FALSE)
+        return false;
+    return true;
 }
 
 object* evaluator::evalInfixExpression(std::string operat,object* left,object* right){
