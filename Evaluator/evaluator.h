@@ -10,4 +10,6 @@ public:
     object* evalPrefixExpression(std::string operat,object* right);
     object* evalBangOperatorExpression(object* right);
     object* evalMinusPrefixOperatorExpression(object* right);
+    object* evalInfixExpression(std::string operat,object* left, object* right);
+    object* evalIntegerInfixExpression(std::string operat,object* left, object* right);
 };

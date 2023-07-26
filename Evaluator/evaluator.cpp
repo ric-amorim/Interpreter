@@ -24,8 +24,58 @@ object* evaluator::eval(node* node){
         object* right = eval(prefNode->right);
         return evalPrefixExpression(prefNode->operat,right);
     }
+    if(auto infixNode = dynamic_cast<infixExpression*>(node)){
+        object* left = eval(infixNode->left);
+        object* right = eval(infixNode->right);
+        return evalInfixExpression(infixNode->operat,left,right);
+    }
     
     return nullptr;
+}
+
+object* evaluator::evalInfixExpression(std::string operat,object* left,object* right){
+    if(left->type() == objectType::integer_obj && right->type() == objectType::integer_obj)
+        return evalIntegerInfixExpression(operat,left,right);
+    if(operat == "==")
+        return nativeBoolToBooleanObject(left == right);
+    if(operat == "!=")
+        return nativeBoolToBooleanObject(left != right);
+    return NULLS;
+    
+}
+
+object* evaluator::evalIntegerInfixExpression(std::string operat, object* left,object* right){
+    Integer* leftTemp = dynamic_cast<Integer*>(left);
+    auto leftVal = leftTemp->value;
+
+    Integer* rightTemp = dynamic_cast<Integer*>(right);
+    auto rightVal = rightTemp->value;
+
+    if(operat == "+"){
+        return new Integer(leftVal + rightVal);
+    }
+    if(operat == "-"){
+        return new Integer(leftVal - rightVal);
+    }
+    if(operat == "*"){
+        return new Integer(leftVal * rightVal);
+    }
+    if(operat == "/"){
+        return new Integer(leftVal / rightVal);
+    }
+    if(operat == "<"){
+        return nativeBoolToBooleanObject(leftVal < rightVal);
+    }
+    if(operat == ">"){
+        return nativeBoolToBooleanObject(leftVal > rightVal);
+    }
+    if(operat == "=="){
+        return nativeBoolToBooleanObject(leftVal == rightVal);
+    }
+    if(operat == "!="){
+        return nativeBoolToBooleanObject(leftVal != rightVal);
+    }
+    return NULLS;
 }
 
 object* evaluator::evalPrefixExpression(std::string operat,object* right){
