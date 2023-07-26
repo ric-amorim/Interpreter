@@ -30,13 +30,45 @@ object* evaluator::eval(node* node){
         return evalInfixExpression(infixNode->operat,left,right);
     }
     if(auto blockNode = dynamic_cast<blockStatement*>(node)){
-        return evalStatements(blockNode->statements);
+        return evalBlockStatement(blockNode);
     }
     if(auto ifNode = dynamic_cast<ifExpression*>(node)){
         return evalIfExpression(ifNode);
     }
+    if(auto returnNode = dynamic_cast<returnStatement*>(node)){
+        object* val = eval(returnNode->returnValue);
+        return new ReturnValue(val);
+    }
+    if(auto progNode = dynamic_cast<program*>(node)){
+        return evalProgram(progNode);
+    }
+
     
     return nullptr;
+}
+
+object* evaluator::evalBlockStatement(blockStatement* block){
+    object* res;
+
+    for(auto statement : block->statements){
+        res = eval(statement);
+
+        if(res != nullptr && res->type() == objectType::return_value_obj)
+            return res;
+    }
+    return res;
+}
+
+object* evaluator::evalProgram(program* program){
+    object* res;
+
+    for(auto statement : program->statements){
+        res = eval(statement);
+
+        if(auto returnValue = dynamic_cast<ReturnValue*>(res))
+            return returnValue->value;
+    }
+    return res;
 }
 
 object* evaluator::evalIfExpression(ifExpression* ie){
@@ -137,6 +169,9 @@ object* evaluator::evalStatements(std::vector<statement*> stmts){
 
     for(auto state : stmts){
         res = eval(state);
+
+        if(auto returnValue = dynamic_cast<ReturnValue*>(res))
+            return returnValue->value;
     } 
     return res;
 }

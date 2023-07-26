@@ -163,10 +163,31 @@ void testIfElseExpression(){
 
 }
 
+void testReturnStatements(){
+    struct tests{
+        std::string input;
+        int expected;
+    };
+    tests input[5]{
+        {"return 10;", 10},
+        {"return 10; 9;", 10},
+        {"return 2 * 5; 9;", 10},
+        {"9; return 2 * 5; 9;", 10},
+        {"if (10 > 1) {if (10 > 1) {return 10;}return 1;}",10},
+    };
+    for(tests tt : input){
+        object* evaluated = testEval(tt.input);
+        testIntegerObject(evaluated,tt.expected);
+    }
+    std::cout<<"Everything is okay!"<<std::endl;
+
+}
+
 int main(){
     //testEvalIntegerExpression();
     //testEvalBooleanExpression();
     //testBangOperator();
-    testIfElseExpression();
+    //testIfElseExpression();
+    testReturnStatements();
     return 0;
 }

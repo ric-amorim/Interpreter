@@ -3,7 +3,8 @@
 enum objectType{
     integer_obj,
     boolean_oj,
-    null_obj
+    null_obj,
+    return_value_obj
 };
 
 class object{
@@ -35,4 +36,10 @@ public:
     objectType type() const override;
 };
 
-
+class ReturnValue : public object{
+public:
+    object* value;
+    ReturnValue(object*);
+    std::string inspect() const override;
+    objectType type() const override;
+};

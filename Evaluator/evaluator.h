@@ -14,6 +14,8 @@ public:
     object* evalIntegerInfixExpression(std::string operat,object* left, object* right);
     object* evalIfExpression(ifExpression* ie);
     bool isTruthy(object* obj);
+    object* evalProgram(program* program);
+    object* evalBlockStatement(blockStatement* block);
 };
 
 
