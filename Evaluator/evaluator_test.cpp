@@ -7,9 +7,12 @@ object* testEval(std::string input){
     std::vector<std::string> v;
     parser pars(lex,v);
     program* p = pars.parseProgram(); 
+    auto s = std::unordered_map<std::string,object*>();
+    environment* env = new environment(s);
+    
     
     evaluator eval;
-    return eval.eval(p);
+    return eval.eval(p,env);
 }
 
 bool testIntegerObject(object* obj,int expected){
@@ -188,7 +191,7 @@ void testErrorHandling(){
         std::string input;
         std::string expectedMessage;
     };
-    tests input[7]{
+    tests input[8]{
         {
             "5 + true;",
             "type mismatch: INTEGER + BOOLEAN",
@@ -216,7 +219,11 @@ void testErrorHandling(){
         {
             "if (10 > 1) {if (10 > 1) {return true + false;}return 1;}",
             "unknown operator: BOOLEAN + BOOLEAN",
-        }
+        },
+        {
+            "foobar",
+            "identifier not found: foobar",
+        },
     };
 
     for(auto tt : input){
@@ -237,6 +244,23 @@ void testErrorHandling(){
     std::cout<<"Everything is okay!"<<std::endl;
 }
 
+void testLetStatement(){
+    struct tests{
+        std::string input;
+        int expected;
+    };
+    tests input[4]{
+        {"let a = 5; a;", 5},
+        {"let a = 5 * 5; a;", 25},
+        {"let a = 5; let b = a; b;", 5},
+        {"let a = 5; let b = a; let c = a + b + 5; c;", 15},
+    };
+    for(auto tt : input){
+        testIntegerObject(testEval(tt.input),tt.expected);
+    }
+    std::cout<<"Everything is okay!"<<std::endl;
+}
+
 int main(){
     //testEvalIntegerExpression();
     //testEvalBooleanExpression();
@@ -244,5 +268,6 @@ int main(){
     //testIfElseExpression();
     //testReturnStatements();
     testErrorHandling();
+    testLetStatement();
     return 0;
 }

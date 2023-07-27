@@ -14,6 +14,8 @@ void printParserErrors(std::vector<std::string> errors){
 }
 
 void repl::start(void) noexcept{
+    auto s = std::unordered_map<std::string,object*>();
+    environment* env = new environment(s);
     for(;;){
         std::string str;
 
@@ -30,7 +32,7 @@ void repl::start(void) noexcept{
             continue;
         }
         evaluator eval;
-        auto evaluated = eval.eval(p);
+        auto evaluated = eval.eval(p,env);
         if(evaluated != nullptr){
         std::cout<<evaluated->inspect()<<std::endl;
 

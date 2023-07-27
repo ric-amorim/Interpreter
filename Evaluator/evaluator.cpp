@@ -17,21 +17,27 @@ bool evaluator::isError(object* obj){
 }
 
 
-object* evaluator::eval(node* node){
+object* evaluator::eval(node* node,environment* env){
     if(auto progNode = dynamic_cast<program*>(node)){
-        return evalProgram(progNode);
+        return evalProgram(progNode,env);
     }
     if(auto blockNode = dynamic_cast<blockStatement*>(node)){
-        return evalBlockStatement(blockNode);
+        return evalBlockStatement(blockNode,env);
     }
     if(auto expNode = dynamic_cast<expressionStatement*>(node)){
-        return eval(expNode->expressions);
+        return eval(expNode->expressions,env);
     }
     if(auto returnNode = dynamic_cast<returnStatement*>(node)){
-        object* val = eval(returnNode->returnValue);
+        object* val = eval(returnNode->returnValue,env);
         if(isError(val))
             return val;
         return new ReturnValue(val);
+    }
+    if(auto letNode = dynamic_cast<letStatement*>(node)){
+        object* val = eval(letNode->value,env);
+        if(isError(val))
+            return val;
+        env->set(letNode->name->value,val);
     }
     if (auto intNode = dynamic_cast<integerLiteral*>(node)) {
         return new Integer(intNode->value);
@@ -40,36 +46,46 @@ object* evaluator::eval(node* node){
         return nativeBoolToBooleanObject(boolNode->value);
     }
     if(auto prefNode = dynamic_cast<prefixExpression*>(node)){
-        object* right = eval(prefNode->right);
+        object* right = eval(prefNode->right,env);
         if(isError(right))
             return right;
         return evalPrefixExpression(prefNode->operat,right);
     }
     if(auto infixNode = dynamic_cast<infixExpression*>(node)){
-        object* left = eval(infixNode->left);
+        object* left = eval(infixNode->left,env);
         if(isError(left))
             return left;
-        object* right = eval(infixNode->right);
+        object* right = eval(infixNode->right,env);
         if(isError(right))
             return right;
         return evalInfixExpression(infixNode->operat,left,right);
     }
     if(auto ifNode = dynamic_cast<ifExpression*>(node)){
-        auto condition = eval(ifNode->condition);
+        auto condition = eval(ifNode->condition,env);
         if(isError(condition))
             return condition;
-        return evalIfExpression(ifNode);
+        return evalIfExpression(ifNode,env);
+    }
+    if(auto identNode = dynamic_cast<identifier*>(node)){
+        return evalIdentifier(identNode,env);
     }
 
     
     return nullptr;
 }
 
-object* evaluator::evalBlockStatement(blockStatement* block){
+object* evaluator::evalIdentifier(identifier* id, environment* env){
+    auto val = env->get(id->value);
+    if(!val)
+        return newError("identifier not found: "+ id->value,{});
+    return val;
+}
+
+object* evaluator::evalBlockStatement(blockStatement* block,environment* env){
     object* res;
 
     for(auto statement : block->statements){
-        res = eval(statement);
+        res = eval(statement,env);
 
         if(res != nullptr){
             auto rt = res->type();
@@ -80,11 +96,11 @@ object* evaluator::evalBlockStatement(blockStatement* block){
     return res;
 }
 
-object* evaluator::evalProgram(program* program){
+object* evaluator::evalProgram(program* program,environment* env){
     object* res;
 
     for(auto statement : program->statements){
-        res = eval(statement);
+        res = eval(statement,env);
 
         if(auto returnValue = dynamic_cast<ReturnValue*>(res))
             return returnValue->value;
@@ -95,14 +111,14 @@ object* evaluator::evalProgram(program* program){
     return res;
 }
 
-object* evaluator::evalIfExpression(ifExpression* ie){
-    object* condition = eval(ie->condition);
+object* evaluator::evalIfExpression(ifExpression* ie,environment* env){
+    object* condition = eval(ie->condition,env);
 
     if(isTruthy(condition)){
-        return eval(ie->consequence);
+        return eval(ie->consequence,env);
     }
     if(ie->alternative != nullptr){
-        return eval(ie->alternative);
+        return eval(ie->alternative,env);
     }
     return NULLS;
 }
@@ -190,11 +206,11 @@ object* evaluator::evalMinusPrefixOperatorExpression(object* right){
     return new Integer(-value);
 }
 
-object* evaluator::evalStatements(std::vector<statement*> stmts){
+object* evaluator::evalStatements(std::vector<statement*> stmts,environment* env){
     object* res;
 
     for(auto state : stmts){
-        res = eval(state);
+        res = eval(state,env);
 
         if(auto returnValue = dynamic_cast<ReturnValue*>(res))
             return returnValue->value;
@@ -225,6 +241,7 @@ std::string replaceString(const std::string& input, const std::string& replaceme
 Error* evaluator::newError(std::string format,std::vector<any> args){
     std::stringstream ss;
     std::string res;
+    res = format;
     for(auto arg : args){
         try{
             arg.cast<objectType>();
