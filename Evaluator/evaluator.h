@@ -1,6 +1,8 @@
 #include "../Parser/parser.h"
 #include "../Object/object.h"
+#include <initializer_list>
 #include <vector>
+
 
 class evaluator {
 public:
@@ -16,6 +18,10 @@ public:
     bool isTruthy(object* obj);
     object* evalProgram(program* program);
     object* evalBlockStatement(blockStatement* block);
+    Error* newError(std::string format,std::vector<any>); 
+    std::string objectToString(objectType t);
+    bool isError(object* obj);
+
 };
 
 

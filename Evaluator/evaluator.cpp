@@ -1,4 +1,8 @@
 #include "evaluator.h"
+#include <cstdio>
+#include <exception>
+#include <initializer_list>
+#include <sstream>
 #include <vector>
 
 
@@ -6,41 +10,55 @@ Boolean* TRUE  = new Boolean(true);
 Boolean* FALSE = new Boolean(false);
 Null* NULLS     = new Null();
 
+bool evaluator::isError(object* obj){
+    if(obj != nullptr)
+        return obj->type() == objectType::error_obj;
+    return false;
+}
+
 
 object* evaluator::eval(node* node){
-    if (auto intNode = dynamic_cast<integerLiteral*>(node)) {
-        return new Integer(intNode->value);
+    if(auto progNode = dynamic_cast<program*>(node)){
+        return evalProgram(progNode);
+    }
+    if(auto blockNode = dynamic_cast<blockStatement*>(node)){
+        return evalBlockStatement(blockNode);
     }
     if(auto expNode = dynamic_cast<expressionStatement*>(node)){
         return eval(expNode->expressions);
     }
-    if(auto progNode = dynamic_cast<program*>(node)){
-        return evalStatements(progNode->statements);
+    if(auto returnNode = dynamic_cast<returnStatement*>(node)){
+        object* val = eval(returnNode->returnValue);
+        if(isError(val))
+            return val;
+        return new ReturnValue(val);
+    }
+    if (auto intNode = dynamic_cast<integerLiteral*>(node)) {
+        return new Integer(intNode->value);
     }
     if(auto boolNode = dynamic_cast<boolean*>(node)){
         return nativeBoolToBooleanObject(boolNode->value);
     }
     if(auto prefNode = dynamic_cast<prefixExpression*>(node)){
         object* right = eval(prefNode->right);
+        if(isError(right))
+            return right;
         return evalPrefixExpression(prefNode->operat,right);
     }
     if(auto infixNode = dynamic_cast<infixExpression*>(node)){
         object* left = eval(infixNode->left);
+        if(isError(left))
+            return left;
         object* right = eval(infixNode->right);
+        if(isError(right))
+            return right;
         return evalInfixExpression(infixNode->operat,left,right);
     }
-    if(auto blockNode = dynamic_cast<blockStatement*>(node)){
-        return evalBlockStatement(blockNode);
-    }
     if(auto ifNode = dynamic_cast<ifExpression*>(node)){
+        auto condition = eval(ifNode->condition);
+        if(isError(condition))
+            return condition;
         return evalIfExpression(ifNode);
-    }
-    if(auto returnNode = dynamic_cast<returnStatement*>(node)){
-        object* val = eval(returnNode->returnValue);
-        return new ReturnValue(val);
-    }
-    if(auto progNode = dynamic_cast<program*>(node)){
-        return evalProgram(progNode);
     }
 
     
@@ -53,8 +71,11 @@ object* evaluator::evalBlockStatement(blockStatement* block){
     for(auto statement : block->statements){
         res = eval(statement);
 
-        if(res != nullptr && res->type() == objectType::return_value_obj)
-            return res;
+        if(res != nullptr){
+            auto rt = res->type();
+            if(rt == objectType::return_value_obj || rt == objectType::error_obj)
+                return res;
+        }
     }
     return res;
 }
@@ -67,6 +88,9 @@ object* evaluator::evalProgram(program* program){
 
         if(auto returnValue = dynamic_cast<ReturnValue*>(res))
             return returnValue->value;
+        if(auto error = dynamic_cast<Error*>(res)){
+            return error;
+        }
     }
     return res;
 }
@@ -100,7 +124,9 @@ object* evaluator::evalInfixExpression(std::string operat,object* left,object* r
         return nativeBoolToBooleanObject(left == right);
     if(operat == "!=")
         return nativeBoolToBooleanObject(left != right);
-    return NULLS;
+    if(left->type() != right->type())
+        return newError("type mismatch: %s %s %s",{left->type(),operat,right->type()});
+    return newError("unknown operator: %s %s %s",{left->type(),operat,right->type()});
     
 }
 
@@ -135,7 +161,7 @@ object* evaluator::evalIntegerInfixExpression(std::string operat, object* left,o
     if(operat == "!="){
         return nativeBoolToBooleanObject(leftVal != rightVal);
     }
-    return NULLS;
+    return newError("unknown operator: %s %s %s",{left->type(),operat,right->type()});
 }
 
 object* evaluator::evalPrefixExpression(std::string operat,object* right){
@@ -143,7 +169,7 @@ object* evaluator::evalPrefixExpression(std::string operat,object* right){
         return evalBangOperatorExpression(right);
     if(operat == "-")
         return evalMinusPrefixOperatorExpression(right);
-    return NULLS;
+    return newError("unknown operator: %s%s",{operat,right->type()});
 }
 
 object* evaluator::evalBangOperatorExpression(object* right){
@@ -158,7 +184,7 @@ object* evaluator::evalBangOperatorExpression(object* right){
 
 object* evaluator::evalMinusPrefixOperatorExpression(object* right){
     if(right->type() != integer_obj)
-        return NULLS;
+        return newError("unknown operator: -%s",{right->type()});
     Integer* cast = dynamic_cast<Integer*>(right);
     auto value = cast->value;
     return new Integer(-value);
@@ -181,3 +207,55 @@ Boolean* evaluator::nativeBoolToBooleanObject(bool input){
         return TRUE;
     return FALSE;
 }
+
+std::string replaceString(const std::string& input, const std::string& replacement) {
+    std::string result = input;
+    size_t pos = 0;
+    
+    while ((pos = result.find("%s", pos)) != std::string::npos) {
+        result.replace(pos, 2, replacement);
+        pos += replacement.length();
+        return result;
+
+    }
+    
+    return result;
+}
+
+Error* evaluator::newError(std::string format,std::vector<any> args){
+    std::stringstream ss;
+    std::string res;
+    for(auto arg : args){
+        try{
+            arg.cast<objectType>();
+        }catch(const std::exception& e){
+            res = replaceString(format,arg.cast<std::string>());
+            format = res;
+            continue;
+        }
+        objectType temp = arg.cast<objectType>();
+        std::string s = objectToString(temp);
+        res = replaceString(format,s);
+        format = res;
+    }
+    ss<<res;
+    return new Error(ss.str());
+
+}
+
+std::string evaluator::objectToString(objectType t){
+    std::map<objectType,std::string> s{
+        {objectType::null_obj, "NULL"},
+        {objectType::error_obj, "ERROR"},
+        {objectType::boolean_oj, "BOOLEAN"},
+        {objectType::integer_obj, "INTEGER"},
+        {objectType::return_value_obj,"RETURN"},
+    };
+    auto it = s.find(t);
+    if (it != s.end()) {
+        return it->second;
+    } else {
+        return "unknown";
+    }
+}
+

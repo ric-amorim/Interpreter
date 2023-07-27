@@ -46,3 +46,15 @@ std::string ReturnValue::inspect() const{
 objectType ReturnValue::type() const{
     return return_value_obj;
 }
+
+Error::Error(std::string m) : message(m){
+    return;
+}
+
+std::string Error::inspect() const{
+    return "Error: " + this->message;
+}
+
+objectType Error::type() const{
+    return error_obj;
+}

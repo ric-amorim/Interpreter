@@ -4,7 +4,8 @@ enum objectType{
     integer_obj,
     boolean_oj,
     null_obj,
-    return_value_obj
+    return_value_obj,
+    error_obj,
 };
 
 class object{
@@ -40,6 +41,14 @@ class ReturnValue : public object{
 public:
     object* value;
     ReturnValue(object*);
+    std::string inspect() const override;
+    objectType type() const override;
+};
+
+class Error : public object{
+public:
+    std::string message;
+    Error(std::string);
     std::string inspect() const override;
     objectType type() const override;
 };
