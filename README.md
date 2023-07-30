@@ -2,7 +2,7 @@
 
 ## Current state of the project
 
-Interpreter fully functional, but I want to add more data types, because right now the interpreter only has support for integers and Booleans data types. <br />
+Interpreter is fully functional, but I want to add more data types because right now the interpreter only has support for integers and Booleans data types. <br />
 
 ## Description and Acknowledgments
 
