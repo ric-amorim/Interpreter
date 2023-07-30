@@ -11,3 +11,13 @@
 designed for this book). <br />
 
 Link for the book: https://interpreterbook.com/ <br />
+
+## How to Use 
+
+   1- Download all the files in the repository
+
+   2- execute the "interpreter.sh"  REQUIREMENT: G++
+
+   3- run ./main
+
+   4- Enjoy :) 
