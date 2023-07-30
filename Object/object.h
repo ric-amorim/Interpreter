@@ -1,4 +1,7 @@
 #include <iostream>
+#include "../Parser/parser.h"
+
+class environment;
 
 enum objectType{
     integer_obj,
@@ -6,6 +9,7 @@ enum objectType{
     null_obj,
     return_value_obj,
     error_obj,
+    function_obj,
 };
 
 class object{
@@ -51,4 +55,14 @@ public:
     Error(std::string);
     std::string inspect() const override;
     objectType type() const override;
+};
+
+class Function : public object{
+public:
+    std::vector<identifier*> parameters;
+    blockStatement* body;
+    environment* env;
+    Function(std::vector<identifier*>,blockStatement*,environment*);
+    objectType type() const override;
+    std::string inspect() const override;
 };

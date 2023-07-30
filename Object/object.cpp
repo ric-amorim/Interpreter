@@ -1,5 +1,8 @@
 #include "object.h"
 #include <string>
+#include <sstream>
+#include <vector>
+
 
 Integer::Integer(int val) : value(val){
     return;
@@ -57,4 +60,36 @@ std::string Error::inspect() const{
 
 objectType Error::type() const{
     return error_obj;
+}
+
+std::string joins(const std::vector<std::string>& s,const std::string& separator){
+    std::string res;
+    if(!s.empty()){
+        res += s[0];
+        for(size_t i= 1;i< s.size();i++)
+            res += separator + s[i];
+    }
+    return res;
+}
+
+
+Function::Function(std::vector<identifier*> p, blockStatement* b, environment* env)
+        : parameters(p), body(b), env(env){
+    return;
+}
+
+std::string Function::inspect() const{
+    std::stringstream ss;
+
+    std::vector<std::string> params;
+    for(auto p : this->parameters){
+        params.push_back(p->strings());
+    }
+    ss<<"fn"<<"("<<joins(params,", ")<<") {\n"<<this->body->strings()<<"\n}";
+
+    return ss.str();
+}
+
+objectType Function::type() const{
+    return function_obj;
 }

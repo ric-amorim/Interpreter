@@ -15,7 +15,7 @@ void printParserErrors(std::vector<std::string> errors){
 
 void repl::start(void) noexcept{
     auto s = std::unordered_map<std::string,object*>();
-    environment* env = new environment(s);
+    environment* env = new environment(s,nullptr);
     for(;;){
         std::string str;
 

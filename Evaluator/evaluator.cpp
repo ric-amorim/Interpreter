@@ -69,9 +69,64 @@ object* evaluator::eval(node* node,environment* env){
     if(auto identNode = dynamic_cast<identifier*>(node)){
         return evalIdentifier(identNode,env);
     }
+    if(auto funcNode = dynamic_cast<functionLiteral*>(node)){
+        auto params = funcNode->parameters;
+        auto body = funcNode->body;
+        return new Function(params,body,env);
+    }
+    if(auto callNode = dynamic_cast<callExpression*>(node)){
+        object* func = eval(callNode->function,env);
+        if(isError(func))
+            return func;
+        auto args = evalExpressions(callNode->arguments,env);
+        if(args.size() == 1 && isError(args[0]))
+            return args[0];
+        return applyFunction(func,args);
+    }
 
     
     return nullptr;
+}
+
+object* evaluator::applyFunction(object* fn, std::vector<object*> args){
+    auto function = dynamic_cast<Function*>(fn);
+    if(!fn)
+        return newError("not a function: %s",{fn->type()});
+    auto extendedEnv = extendFunctionEnv(function,args);
+    auto evaluated = eval(function->body,extendedEnv);
+    return unwrapReturnValue(evaluated);
+}
+
+environment* evaluator::extendFunctionEnv(Function* fn,std::vector<object*> args){
+    auto env = newEnclosedEnvironment(fn->env);
+
+    int i=0;
+    for(auto param : fn->parameters){
+        env->set(param->value,args[i]);
+        i++;
+    }
+    return env;
+}
+
+object* evaluator::unwrapReturnValue(object* obj){
+    if(auto returnValue = dynamic_cast<ReturnValue*>(obj))
+        return returnValue->value;
+    return obj;
+}
+
+std::vector<object*> evaluator::evalExpressions(std::vector<expression*> exps,environment* env){
+    std::vector<object*> res;
+
+    for(auto e : exps){
+        auto evaluated = eval(e,env);
+        if(isError(evaluated)){
+            std::vector<object*> temp;
+            temp.push_back(evaluated);
+            return temp;
+        }
+        res.push_back(evaluated);
+    }
+    return res;
 }
 
 object* evaluator::evalIdentifier(identifier* id, environment* env){

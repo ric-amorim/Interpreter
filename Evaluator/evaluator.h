@@ -1,4 +1,3 @@
-#include "../Parser/parser.h"
 #include "../Object/environment.h"
 #include <initializer_list>
 #include <vector>
@@ -22,6 +21,10 @@ public:
     std::string objectToString(objectType t);
     bool isError(object* obj);
     object* evalIdentifier(identifier* id,environment* env);
+    std::vector<object*> evalExpressions(std::vector<expression*>,environment*);
+    object* applyFunction(object*,std::vector<object*>);
+    environment* extendFunctionEnv(Function*,std::vector<object*>);
+    object* unwrapReturnValue(object*);
 
 };
 

@@ -8,7 +8,7 @@ object* testEval(std::string input){
     parser pars(lex,v);
     program* p = pars.parseProgram(); 
     auto s = std::unordered_map<std::string,object*>();
-    environment* env = new environment(s);
+    environment* env = new environment(s,nullptr);
     
     
     evaluator eval;
@@ -261,13 +261,67 @@ void testLetStatement(){
     std::cout<<"Everything is okay!"<<std::endl;
 }
 
+void testFunctionObject(){
+    std::string input = {"fn(x) { x + 2; };"};
+
+    auto evaluated = testEval(input);
+    auto fn = dynamic_cast<Function*>(evaluated);
+    if(!fn){
+        std::cerr<<"object is not Function. got="<<typeid(evaluated).name()
+                 <<" ("<<evaluated<<")"<<std::endl;
+        exit(EXIT_FAILURE);
+    }
+    if(fn->parameters.size() != 1){
+        std::cerr<<"function has wrong parameters. parameters"
+                 <<fn->parameters.size()<<std::endl;
+        exit(EXIT_FAILURE);
+    }
+    if(fn->parameters[0]->strings() != "x"){
+        std::cerr<<"parameters is not 'x'. parameter="
+                 <<fn->parameters[0]<<std::endl;
+        exit(EXIT_FAILURE);
+    }
+    auto expectedBody = "(x + 2)";
+
+    if(fn->body->strings() != expectedBody){
+        std::cerr<<"body is not "<<expectedBody<<". got="<<fn->body->strings()
+                <<std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    std::cout<<"Everything is okay!"<<std::endl;
+}
+
+void testFunctionApplication(){
+    struct tests{
+        std::string input;
+        int expected;
+    };
+    tests input[6] = {
+        {"let identity = fn(x) { x; }; identity(5);", 5},
+        {"let identity = fn(x) { return x; }; identity(5);", 5},
+        {"let double = fn(x) { x * 2; }; double(5);", 10},
+        {"let add = fn(x, y) { x + y; }; add(5, 5);", 10},
+        {"let add = fn(x, y) { x + y; }; add(5 + 5, add(5, 5));", 20},
+        {"fn(x) { x; }(5)", 5},
+    };
+    for(auto tt : input){
+        testIntegerObject(testEval(tt.input),tt.expected);
+    }
+
+
+    std::cout<<"Everything is okay!"<<std::endl;
+}
+
 int main(){
     //testEvalIntegerExpression();
     //testEvalBooleanExpression();
     //testBangOperator();
     //testIfElseExpression();
     //testReturnStatements();
-    testErrorHandling();
-    testLetStatement();
+    //testErrorHandling();
+    //testLetStatement();
+    //testFunctionObject();
+    testFunctionApplication();
     return 0;
 }
